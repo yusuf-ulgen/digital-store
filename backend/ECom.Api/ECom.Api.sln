@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECom.Api", "ECom.Api.csproj", "{DCD6BF4F-B8C8-A98D-EFB8-4E0AC71AF2AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCD6BF4F-B8C8-A98D-EFB8-4E0AC71AF2AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCD6BF4F-B8C8-A98D-EFB8-4E0AC71AF2AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCD6BF4F-B8C8-A98D-EFB8-4E0AC71AF2AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCD6BF4F-B8C8-A98D-EFB8-4E0AC71AF2AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B64C0918-146C-4A7A-AFF8-6B0A1A9664AD}
+	EndGlobalSection
+EndGlobal
