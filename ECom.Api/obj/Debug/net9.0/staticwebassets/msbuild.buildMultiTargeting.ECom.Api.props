@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\ECom.Api.props" />
+</Project>
