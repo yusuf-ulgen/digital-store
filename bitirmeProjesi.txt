@@ -1,0 +1,17 @@
+bitirmeProjesi
+Node.js indirilip kuruldu 
+.net sdk indirilip kuruldu 
+vs 2022 indirilip kuruldu 
+vsc indirilip kuruldu 
+vsc içinde indirilip kuruldu(C# Dev Kit)
+github repoya bağlanıldı 
+frontend ve backendde gerekli bağlantılar yapılıp localhostta göstermek isterdiklerimiz gösterdik(test için)
+Firebase CLI kurulumu ve giriş
+Firebase Console’da proje oluşturma
+Firestore Database yapılandırması (Products koleksiyonu)
+Firebase Authentication (Email/Password)
+Backend’te Firebase Admin SDK entegrasyonu
+Frontend’te Firebase Web SDK (auth + veri çekme)
+Login/Register sayfaları
+Gerçek zamanlı ürün listeleme (Firestore → frontend)
+Ürün ekleme/silme UI’si (CRUD tamamlama)

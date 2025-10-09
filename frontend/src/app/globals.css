@@ -1,26 +1,94 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Tema: kırık beyaz zemin + taş tonları */
+:root{
+  --bg: #F7F6F2;   /* kırık beyaz */
+  --ink: #1F2937;  /* koyu gri (metin) */
+  --muted:#6B7280; /* ikincil metin */
+  --card:#FFFFFF;  /* kart zemin */
+  --brand:#3B82F6; /* aksan */
+
+  /* Footer paleti (senden gelen görsele göre) */
+  --footer-bg: #232323;
+  --footer-border: #282828;
+  --footer-ink: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+html, body { height: 100%; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Kenar boşluklarını temizle (yanlarda beyazlık olmasın) */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-feature-settings: "cv02","cv03","cv04","cv11";
+}
+
+/* ---- yardımcı sınıflar: düz CSS (apply yok) ---- */
+.container-tight {
+  max-width: 72rem;           /* = max-w-6xl */
+  margin-left: auto; 
+  margin-right: auto;         /* = mx-auto */
+  padding-left: 1rem; 
+  padding-right: 1rem;        /* = px-4 */
+}
+.card {
+  background: #fff; 
+  border-radius: 1rem;        /* ~ rounded-2xl */
+  border: 1px solid #e7e5e4;  /* ~ border-stone-200 */
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);  /* ~ shadow-sm */
+}
+.btn {
+  display: inline-flex; 
+  align-items: center; 
+  gap: .5rem;
+  border-radius: .75rem; 
+  padding: .5rem 1rem; 
+  font-weight: 500;
+}
+.btn-primary { color: #fff; background: var(--brand); }
+.link-muted { color: #57534e; text-decoration: underline; }
+.link-muted:hover { color: #1f2937; }
+
+/* ------ Footer (siyahımsı gri) ------ */
+.footer-dark { background: var(--footer-bg); color: var(--footer-ink); }
+.footer-dark a:any-link { color: var(--footer-ink); text-decoration: none; }
+.footer-dark a:any-link:hover { text-decoration: underline; }
+.footer-divider { height:1px; background: var(--footer-border); }
+
+/* Sosyal küçük butonlar */
+.social-dot {
+  width:36px; height:36px; 
+  border-radius:9999px;
+  display:inline-flex; 
+  align-items:center; 
+  justify-content:center;
+  border:1px solid rgba(255,255,255,.18);
+}
+.social-dot:hover { background: rgba(255,255,255,.08); }
+
+/* Home grid: 3 kolon (md ve üstü) */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 28px;
+}
+@media (min-width: 768px){
+  .home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.home-card img{
+  width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:14px;
+  border:1px solid #e7e5e4;
+}
+.home-card { display:flex; flex-direction:column; gap:10px; }
+.price-line{ display:flex; gap:8px; align-items:baseline; }
+.price-old { color:#9ca3af; text-decoration:line-through; }
+.price-now { font-weight:700; font-size:1.125rem; }
+
+/* başlıklar */
+.section-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 12px;
 }

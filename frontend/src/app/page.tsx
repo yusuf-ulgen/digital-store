@@ -1,63 +1,79 @@
-"use client";
-import { useEffect, useState } from "react";
-
-type Product = {
-  id: string;
+type Item = {
   title: string;
   price: number;
-  stock: number;
-  imageUrl: string;
+  old?: number;
+  image: string;
 };
 
-export default function ProductsPage() {
-  const [items, setItems] = useState<Product[]>([]);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE; // örn: http://localhost:5180
-    const run = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/products`);
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const data: Product[] = await res.json();
-        setItems(data);
-      } catch (e: any) {
-        setErr(String(e?.message ?? e));
-      } finally {
-        setLoading(false);
-      }
-    };
-    run();
-  }, []);
-
-  if (err) return <div className="p-6 text-red-500">Hata: {err}</div>;
+export default function HomePage() {
+  const items: Item[] = [
+    {
+      title: "Şef Bıçağı Santoku Paslanmaz Çelik",
+      price: 599.0,
+      image: "https://picsum.photos/seed/knife1/800/600",
+    },
+    {
+      title: "100. YILA ÖZEL ŞEF BIÇAĞI",
+      price: 449.9,
+      old: 499.9,
+      image: "https://picsum.photos/seed/knife2/800/600",
+    },
+    {
+      title: "Şef Bıçağı Santoku Paslanmaz Çelik",
+      price: 599.0,
+      image: "https://picsum.photos/seed/knife3/800/600",
+    },
+    {
+      title: "Kırmızı Şef Bıçağı 3 Numara",
+      price: 499.9,
+      image: "https://picsum.photos/seed/knife4/800/600",
+    },
+    {
+      title: "Şef Bıçağı Fileto Paslanmaz Çelik",
+      price: 589.9,
+      old: 629.9,
+      image: "https://picsum.photos/seed/knife5/800/600",
+    },
+    {
+      title: "Şef Bıçağı 20 Cm No:2 Mutfagınızın İncisi",
+      price: 549.9,
+      image: "https://picsum.photos/seed/knife6/800/600",
+    },
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Ürünler</h1>
+    <div className="space-y-12">
+      {/* Hero görsel */}
+      <section className="card overflow-hidden">
+        <img
+          src="/giris-hero.webp"
+          alt="Yeni Nesil E-Ticaret"
+          className="w-full object-cover"
+        />
+      </section>
 
-      {loading ? (
-        <p>Yükleniyor…</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {items.map((p) => (
-            <div key={p.id} className="border rounded-lg p-3">
-              <img
-                src={p.imageUrl}
-                alt={p.title}
-                className="w-full h-40 object-cover rounded"
-              />
-              <h4 className="mt-2 font-medium">{p.title}</h4>
-              <p className="text-sm opacity-80">
-                ₺{p.price} • Stok: {p.stock}
-              </p>
+      {/* 3'lü grid: görseller küçültülmüş + aralarda boşluklar */}
+      <section>
+        <div className="section-head">
+          <h2 className="text-xl font-semibold">Şef Bıçakları</h2>
+          <a className="link-muted text-sm" href="/products">Tümünü Gör</a>
+        </div>
+
+        <div className="home-grid">
+          {items.map((it, i) => (
+            <div key={i} className="home-card">
+              <img src={it.image} alt={it.title} />
+              <div className="text-sm opacity-80">{it.title}</div>
+              <div className="price-line">
+                {typeof it.old === "number" && (
+                  <span className="price-old">{it.old.toFixed(2)} TL</span>
+                )}
+                <span className="price-now">{it.price.toFixed(2)} TL</span>
+              </div>
             </div>
           ))}
-
-          {items.length === 0 && <p>Henüz ürün yok</p>}
         </div>
-      )}
+      </section>
     </div>
   );
 }

@@ -34,7 +34,7 @@ builder.Services.AddSingleton(provider =>
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(o =>
 {
-    o.AddDefaultPolicy(p => p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod());
+    o.AddDefaultPolicy(p => p.WithOrigins(allowedOrigins).WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod());
 });
 
 // ---- Swagger ----
