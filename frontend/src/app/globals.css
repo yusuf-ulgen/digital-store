@@ -92,3 +92,21 @@ body {
   display:flex; align-items:center; justify-content:space-between;
   margin-bottom: 12px;
 }
+
+/* --- header küçük yardımcılar --- */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Duyuru şeridi için opsiyonel kayan yazı */
+@keyframes slideLeft {
+  0%   { transform: translate3d(0,0,0); }
+  100% { transform: translate3d(-50%,0,0); }
+}
+.marquee {
+  display: inline-block;
+  min-width: 200%;
+  animation: slideLeft 18s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee { animation: none; }
+}

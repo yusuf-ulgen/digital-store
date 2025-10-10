@@ -38,43 +38,46 @@ export default function Footer() {
             background: "#1a1a1a",
             border: "3px solid #3B82F6",
             borderRadius: "1rem",
-            padding: "2rem",
+            padding: "1.5rem",
             zIndex: 9999,
             textAlign: "center",
             maxWidth: "90%",
             boxShadow: "0 0 40px rgba(59, 130, 246, 0.5)",
-            animation: "slideIn 0.3s ease-out",
+            animation: "slideIn 0.25s ease-out",
           }}
         >
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔪✨</div>
-          <div
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: "bold",
-              marginBottom: "0.5rem",
-            }}
-          >
+          <div style={{ fontSize: "2.25rem", marginBottom: "0.5rem" }}>🔪✨</div>
+          <div style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "0.25rem" }}>
             Keskin Zeka!
           </div>
-          <div style={{ fontSize: "1rem", opacity: 0.9 }}>
+          <div style={{ fontSize: "0.95rem", opacity: 0.9 }}>
             50 yıllık deneyim + bu ekip = kusursuz kod! 💪
           </div>
         </div>
       )}
 
-      {/* Üst Bölüm — 3 sütun */}
+      {/* Üst Bölüm — 3 sütun (kısaltılmış dikey boşluklar) */}
       <div
         style={{
           maxWidth: "72rem",
           margin: "0 auto",
-          padding: "3rem 1rem",
+          padding: "1rem 1rem",        // <— daha kısa
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "3rem",
+          gap: "2rem",                  // <— daha kısa
+          alignItems: "start",
         }}
       >
-        {/* SOL SÜTUN */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        {/* SOL SÜTUN — Ortalanmış başlık + logo + metin */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",       // <— hepsi aynı eksende
+            gap: "0.75rem",             // <— daha kısa aralık
+            textAlign: "center",
+          }}
+        >
           <div
             style={{
               fontSize: "1.5rem",
@@ -86,43 +89,46 @@ export default function Footer() {
           </div>
 
           {/* LOGO — public/Y.svg */}
-          <div
+          <button
             onClick={handleLogoClick}
+            title="Logoya 5 kez tıkla ;)"
             style={{
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
               transition: "transform 0.2s",
               transform: showEgg ? "rotate(360deg)" : "none",
+              padding: 0,
+              border: "none",
+              background: "transparent",
             }}
-            title="Logoya 5 kez tıkla ;)"
           >
             <Image
-              src="/Y.svg"      // <- senin logon (public/Y.svg)
+              src="/Y.svg"
               alt="ÜLGEN Paslanmaz Logosu"
-              width={80}
-              height={80}
+              width={64}        // <— 64px logo
+              height={64}
               style={{ filter: "invert(1)", opacity: 0.95 }}
             />
-          </div>
+          </button>
 
-          <p style={{ fontSize: "0.875rem", lineHeight: "1.5", opacity: 0.9 }}>
+          <p style={{ fontSize: "0.9rem", lineHeight: 1.6, opacity: 0.9, maxWidth: "34rem" }}>
             Sizlerin ihtiyacını çok iyi biliyoruz. Usta ellerin hazırladığı kaliteli ve
             keskin bıçakları sizler için yapıyoruz. 50 yıldan fazladır ürettiğimiz
             bıçaklar dünyanın dört bir yanına gönderilmektedir.
           </p>
         </div>
 
-        {/* ORTA SÜTUN - KURUMSAL */}
+        {/* ORTA SÜTUN — KURUMSAL */}
         <div>
           <div
             style={{
-              fontSize: "0.875rem",
-              fontWeight: "600",
+              fontSize: "0.9rem",
+              fontWeight: 600,
               letterSpacing: "0.1em",
               opacity: 0.9,
-              marginBottom: "1rem",
+              marginBottom: "0.75rem",
             }}
           >
             KURUMSAL
@@ -134,7 +140,7 @@ export default function Footer() {
               margin: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "0.5rem",
+              gap: "0.4rem",      // <— aralık az
             }}
           >
             {[
@@ -148,15 +154,9 @@ export default function Footer() {
               <li key={item}>
                 <a
                   href="#"
-                  style={{
-                    color: "#ffffff",
-                    textDecoration: "none",
-                    fontSize: "0.875rem",
-                    opacity: 0.9,
-                    transition: "opacity 0.2s",
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.opacity = "1")}
-                  onMouseOut={(e) => (e.currentTarget.style.opacity = "0.9")}
+                  style={{ color: "#ffffff", textDecoration: "none", fontSize: "0.9rem", opacity: 0.9 }}
+                  onMouseOver={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                  onMouseOut={(e) => (e.currentTarget.style.textDecoration = "none")}
                 >
                   {item}
                 </a>
@@ -165,16 +165,16 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* SAĞ SÜTUN - KATEGORİLER + SOSYAL */}
+        {/* SAĞ SÜTUN — KATEGORİLER + SOSYAL */}
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div>
             <div
               style={{
-                fontSize: "0.875rem",
-                fontWeight: "600",
+                fontSize: "0.9rem",
+                fontWeight: 600,
                 letterSpacing: "0.1em",
                 opacity: 0.9,
-                marginBottom: "1rem",
+                marginBottom: "0.75rem",
               }}
             >
               KATEGORİLER
@@ -186,8 +186,8 @@ export default function Footer() {
                 margin: 0,
                 display: "flex",
                 flexDirection: "column",
-                gap: "0.5rem",
-                marginBottom: "1.5rem",
+                gap: "0.4rem",    // <— aralık az
+                marginBottom: "1rem",
               }}
             >
               {[
@@ -202,15 +202,9 @@ export default function Footer() {
                 <li key={item}>
                   <a
                     href="#"
-                    style={{
-                      color: "#ffffff",
-                      textDecoration: "none",
-                      fontSize: "0.875rem",
-                      opacity: 0.9,
-                      transition: "opacity 0.2s",
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.opacity = "1")}
-                    onMouseOut={(e) => (e.currentTarget.style.opacity = "0.9")}
+                    style={{ color: "#ffffff", textDecoration: "none", fontSize: "0.9rem", opacity: 0.9 }}
+                    onMouseOver={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                    onMouseOut={(e) => (e.currentTarget.style.textDecoration = "none")}
                   >
                     {item}
                   </a>
@@ -220,13 +214,13 @@ export default function Footer() {
           </div>
 
           {/* Sosyal */}
-          <div style={{ display: "flex", gap: "0.75rem", marginTop: "auto" }}>
+          <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
             <a
               href="#"
               aria-label="Facebook"
               style={{
-                width: "36px",
-                height: "36px",
+                width: "34px",
+                height: "34px",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
@@ -234,14 +228,9 @@ export default function Footer() {
                 border: "1px solid rgba(255,255,255,0.18)",
                 color: "#ffffff",
                 textDecoration: "none",
-                transition: "background 0.2s",
               }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
+              onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
             >
               f
             </a>
@@ -249,8 +238,8 @@ export default function Footer() {
               href="#"
               aria-label="Instagram"
               style={{
-                width: "36px",
-                height: "36px",
+                width: "34px",
+                height: "34px",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
@@ -258,15 +247,10 @@ export default function Footer() {
                 border: "1px solid rgba(255,255,255,0.18)",
                 color: "#ffffff",
                 textDecoration: "none",
-                fontSize: "1.2rem",
-                transition: "background 0.2s",
+                fontSize: "1.1rem",
               }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
+              onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
             >
               ●
             </a>
@@ -274,15 +258,15 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* AYRAÇ */}
+      {/* AYRAÇ (ince) */}
       <div style={{ height: "1px", background: "#282828" }}></div>
 
-      {/* TELİF */}
+      {/* TELİF (küçük padding) */}
       <div
         style={{
           maxWidth: "72rem",
           margin: "0 auto",
-          padding: "1.25rem 1rem",
+          padding: "0.9rem 1rem",
           textAlign: "center",
           fontSize: "0.75rem",
           opacity: 0.7,

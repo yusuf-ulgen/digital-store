@@ -43,15 +43,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-12">
-      {/* Hero görsel */}
-      <section className="card overflow-hidden">
-        <img
-          src="/giris-hero.webp"
-          alt="Yeni Nesil E-Ticaret"
-          className="w-full object-cover"
-        />
-      </section>
-
       {/* 3'lü grid: görseller küçültülmüş + aralarda boşluklar */}
       <section>
         <div className="section-head">
