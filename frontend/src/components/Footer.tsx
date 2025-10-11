@@ -116,9 +116,9 @@ export default function Footer() {
           </button>
 
           <p style={{ fontSize: "0.9rem", lineHeight: 1.6, opacity: 0.9, maxWidth: "34rem" }}>
-            Sizlerin ihtiyacını çok iyi biliyoruz. Usta ellerin hazırladığı kaliteli ve
-            keskin bıçakları sizler için yapıyoruz. 50 yıldan fazladır ürettiğimiz
-            bıçaklar dünyanın dört bir yanına gönderilmektedir.
+            Senin beklentini biliyoruz. 
+            Dayanıklı ve keskin bıçakları ustalıkla üretiyoruz. 
+            Yirmi yılı aşkın süredir ürünlerimizi dünya pazarında sergiliyoruz.
           </p>
         </div>
 
