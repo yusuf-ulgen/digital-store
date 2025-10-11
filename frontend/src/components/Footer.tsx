@@ -56,25 +56,25 @@ export default function Footer() {
         </div>
       )}
 
-      {/* Üst Bölüm — 3 sütun (kısaltılmış dikey boşluklar) */}
+      {/* Üst Bölüm — 3 sütun */}
       <div
         style={{
           maxWidth: "72rem",
           margin: "0 auto",
-          padding: "1rem 1rem",        // <— daha kısa
+          padding: "1rem 1rem",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "2rem",                  // <— daha kısa
+          gap: "2rem",
           alignItems: "start",
         }}
       >
-        {/* SOL SÜTUN — Ortalanmış başlık + logo + metin */}
+        {/* SOL SÜTUN */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",       // <— hepsi aynı eksende
-            gap: "0.75rem",             // <— daha kısa aralık
+            alignItems: "center",
+            gap: "0.75rem",
             textAlign: "center",
           }}
         >
@@ -88,7 +88,7 @@ export default function Footer() {
             ÜLGEN Paslanmaz
           </div>
 
-          {/* LOGO — public/Y.svg */}
+          {/* LOGO — public/LOGO.png */}
           <button
             onClick={handleLogoClick}
             title="Logoya 5 kez tıkla ;)"
@@ -97,7 +97,7 @@ export default function Footer() {
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              transition: "transform 0.2s",
+              transition: "transform 0.4s",
               transform: showEgg ? "rotate(360deg)" : "none",
               padding: 0,
               border: "none",
@@ -105,11 +105,13 @@ export default function Footer() {
             }}
           >
             <Image
-              src="/Y.svg"
+              src="/LOGO.png"
               alt="ÜLGEN Paslanmaz Logosu"
-              width={64}        // <— 64px logo
-              height={64}
-              style={{ filter: "invert(1)", opacity: 0.95 }}
+              width={100}
+              height={100}
+              style={{
+                objectFit: "contain",
+              }}
             />
           </button>
 
@@ -140,7 +142,7 @@ export default function Footer() {
               margin: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "0.4rem",      // <— aralık az
+              gap: "0.4rem",
             }}
           >
             {[
@@ -186,7 +188,7 @@ export default function Footer() {
                 margin: 0,
                 display: "flex",
                 flexDirection: "column",
-                gap: "0.4rem",    // <— aralık az
+                gap: "0.4rem",
                 marginBottom: "1rem",
               }}
             >
@@ -258,10 +260,10 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* AYRAÇ (ince) */}
+      {/* AYRAÇ */}
       <div style={{ height: "1px", background: "#282828" }}></div>
 
-      {/* TELİF (küçük padding) */}
+      {/* TELİF */}
       <div
         style={{
           maxWidth: "72rem",

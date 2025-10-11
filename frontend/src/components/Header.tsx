@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 /* Kısa stil yardımcıları (Tailwind yok) */
 const container: React.CSSProperties = {
@@ -23,8 +24,8 @@ const rowCenter: React.CSSProperties = {
 function AnnouncementBar() {
   return (
     <div style={{ width: "100%", background: "#000000", color: "#ffffff" }}>
-      <div style={{ ...container, padding: "8px 16px" }}>
-        <p style={{ textAlign: "center", fontSize: "13px", letterSpacing: "0.02em" }}>
+      <div style={{ ...container, padding: "0.1px 16px" }}>
+        <p style={{ textAlign: "center", fontSize: "10px", letterSpacing: "0.02em" }}>
           TÜM ÜRÜNLERDE ÜCRETSİZ &amp; HIZLI KARGO
         </p>
       </div>
@@ -54,6 +55,18 @@ function TopInfoRow() {
 
 function MainHeader() {
   const router = useRouter();
+  const [showLogo, setShowLogo] = useState(false);
+
+  // Esc ile kapatma
+  useEffect(() => {
+    if (!showLogo) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowLogo(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showLogo]);
+
   const onSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const q = String(new FormData(e.currentTarget).get("q") || "").trim();
@@ -73,13 +86,34 @@ function MainHeader() {
           padding: "20px 16px",
         }}
       >
-        {/* Sol: Marka */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-          <Link href="/" style={{ color: "#111827", textDecoration: "none" }}>
-            <div style={{ lineHeight: 1 }}>
-              <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "0.06em" }}>ÜLGEN</div>
-              <div style={{ fontSize: 20, fontWeight: 600, marginTop: -4 }}>Paslanmaz</div>
-            </div>
+        {/* Sol: Marka (LOGO) */}
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Link
+            href="/"
+            aria-label="ÜLGEN Paslanmaz anasayfa"
+            onClick={(e) => {
+              e.preventDefault(); // anasayfaya gitme, modal aç
+              setShowLogo(true);
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              textDecoration: "none",
+              cursor: "zoom-in",
+            }}
+          >
+            <Image
+              src="/LOGO.png"          // public/LOGO.png
+              alt="ÜLGEN Paslanmaz"
+              width={185}
+              height={120}
+              priority
+              style={{
+                height: 90,
+                width: "auto",
+                objectFit: "contain",
+              }}
+            />
           </Link>
         </div>
 
@@ -149,6 +183,69 @@ function MainHeader() {
           </Link>
         </div>
       </div>
+
+      {/* LOGO MODALI */}
+      {showLogo && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Logo önizleme"
+          onClick={() => setShowLogo(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          {/* KAPAT (X) */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowLogo(false); }}
+            aria-label="Kapat"
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.35)",
+              background: "rgba(0,0,0,0.25)",
+              color: "#ffffff",
+              cursor: "pointer",
+              fontSize: 24,
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+
+          {/* İç kutu: tıklanınca kapanmasın */}
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: "92vw", maxHeight: "86vh" }}>
+            <Image
+              src="/LOGO.png"
+              alt="ÜLGEN Paslanmaz logo büyük"
+              width={1400}
+              height={800}
+              priority
+              style={{
+                width: "100%",
+                height: "auto",
+                objectFit: "contain",
+                display: "block",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
+                borderRadius: 12,
+                background: "#111111",
+                padding: 16,
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
