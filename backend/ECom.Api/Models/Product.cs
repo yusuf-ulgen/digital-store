@@ -2,8 +2,9 @@ namespace ECom.Api.Models;
 
 public class Product
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public string? Description { get; set; }
+    public string Id { get; set; } = default!;      // string id
+    public string Title { get; set; } = default!;
+    public decimal Price { get; set; }              // decimal para
+    public int Stock { get; set; }
+    public string? ImageUrl { get; set; }
 }

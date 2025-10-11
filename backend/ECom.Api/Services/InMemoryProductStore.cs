@@ -1,48 +1,48 @@
+using System.Collections.Concurrent;
+using System.Linq;
 using ECom.Api.Models;
 
 namespace ECom.Api.Services;
 
-public interface IProductStore
-{
-    IEnumerable<Product> GetAll();
-    Product? Get(Guid id);
-    Product Add(Product p);
-    bool Update(Guid id, Product p);
-    bool Delete(Guid id);
-}
-
 public class InMemoryProductStore : IProductStore
 {
-    private readonly List<Product> _items = new()
-    {
-        new Product{ Name="Test Ürün 1", Price=199.90m, Description="Demo"},
-        new Product{ Name="Test Ürün 2", Price=349.00m}
-    };
+    private readonly ConcurrentDictionary<string, Product> _db = new();
 
-    public IEnumerable<Product> GetAll() => _items;
-    public Product? Get(Guid id) => _items.FirstOrDefault(x => x.Id == id);
-
-    public Product Add(Product p)
+    public InMemoryProductStore()
     {
-        p.Id = Guid.NewGuid();
-        _items.Add(p);
+        // örnek veriler
+        Add("Şef Bıçağı Santoku Paslanmaz Çelik", 599m,    8, "/images/p1.jpg");
+        Add("100. YILA ÖZEL ŞEF BIÇAĞI",          449.90m, 5, "/images/p2.jpg");
+        Add("Şef Bıçağı Santoku Paslanmaz Çelik", 599m,    0, "/images/p3.jpg");
+    }
+
+    public IEnumerable<Product> GetAll() => _db.Values.OrderBy(x => x.Title);
+
+    public Product? Get(string id) => _db.TryGetValue(id, out var p) ? p : null;
+
+    public Product Add(string title, decimal price, int stock, string? imageUrl)
+    {
+        var p = new Product
+        {
+            Id       = Guid.NewGuid().ToString("N"),  // Guid → string
+            Title    = title,
+            Price    = price,                          // decimal
+            Stock    = stock,
+            ImageUrl = imageUrl
+        };
+        _db[p.Id] = p;                                // Key/Normalize yok
         return p;
     }
 
-    public bool Update(Guid id, Product p)
+    public Product? Update(string id, string title, decimal price, int stock, string? imageUrl)
     {
-        var i = _items.FindIndex(x => x.Id == id);
-        if (i < 0) return false;
-        _items[i].Name = p.Name;
-        _items[i].Price = p.Price;
-        _items[i].Description = p.Description;
-        return true;
+        if (!_db.TryGetValue(id, out var p)) return null;
+        p.Title    = title;
+        p.Price    = price;                           // decimal
+        p.Stock    = stock;
+        p.ImageUrl = imageUrl;
+        return p;
     }
 
-    public bool Delete(Guid id)
-    {
-        var e = Get(id);
-        if (e is null) return false;
-        return _items.Remove(e);
-    }
+    public bool Delete(string id) => _db.TryRemove(id, out _);
 }
