@@ -1,6 +1,6 @@
 namespace ECom.Api.Models;
 
-public enum OrderStatus { PendingPayment, Paid, Cancelled }
+public enum OrderStatus { Created, Paid, Packed, Shipped, Delivered, Cancelled }
 
 public class OrderItem
 {
@@ -26,7 +26,8 @@ public class Order
     public string? CartId { get; set; }
     public List<OrderItem> Items { get; set; } = new();
     public decimal Total => Items.Sum(i => i.LineTotal);
-    public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
+    public OrderStatus Status { get; set; } = OrderStatus.Created;
     public string? PaymentId { get; set; }
     public Customer? Customer { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

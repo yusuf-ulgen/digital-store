@@ -5,36 +5,48 @@ namespace ECom.Api.Services;
 
 public class InMemoryOrderService : IOrderService
 {
-    private readonly ConcurrentDictionary<string, Order> _orders = new();
+    private static readonly ConcurrentDictionary<string, Order> _store = new();
 
     public Order CreateFromCart(string cartId, Cart cart, Customer? customer)
     {
-        var order = new Order
+        var o = new Order
         {
-            CartId   = cartId,
-            Customer = customer,
-            Items    = cart.Items.Select(i => new OrderItem
-            {
-                ProductId = i.ProductId,
-                Title     = i.Title,
-                ImageUrl  = i.ImageUrl,
-                UnitPrice = i.UnitPrice,
-                Qty       = i.Qty
-            }).ToList()
+            Id = Guid.NewGuid().ToString("N"),
+            Status = OrderStatus.Created,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
-        _orders[order.Id] = order;
-        return order;
+        _store[o.Id] = o;
+        return o;
     }
 
-    public Order? Get(string orderId) =>
-        _orders.TryGetValue(orderId, out var o) ? o : null;
+    public Order? Get(string id)
+        => _store.TryGetValue(id, out var o) ? o : null;
 
-    public void MarkPaid(string orderId, string paymentId)
+    public Order? UpdateStatus(string id, OrderStatus status)
     {
-        if (_orders.TryGetValue(orderId, out var o))
-        {
-            o.Status    = OrderStatus.Paid;
-            o.PaymentId = paymentId;
-        }
+        if (!_store.TryGetValue(id, out var o)) return null;
+        o.Status = status;
+        o.UpdatedAt = DateTime.UtcNow;
+        _store[id] = o;
+        return o;
+    }
+
+    // ← CS0535'i kapatan implementasyon
+    public Order? MarkPaid(string id, string transactionId)
+    {
+        if (!_store.TryGetValue(id, out var o)) return null;
+
+        // İstersen Created dışındaki bazı durumlarda engelle:
+        // if (o.Status != OrderStatus.Created) return null;
+
+        o.Status = OrderStatus.Paid;
+        o.UpdatedAt = DateTime.UtcNow;
+
+        // Order modelinde ödeme referansı alanın yoksa bunu sadece logla/geç.
+        // Varsa örn: o.PaymentRef = transactionId;
+
+        _store[id] = o;
+        return o;
     }
 }

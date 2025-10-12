@@ -62,3 +62,16 @@ export function useCart() {
 
 export const tl = (n: number) =>
   new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 2 }).format(n);
+
+
+const KEY = "cartId";
+
+export function ensureCartId(): string {
+  let id = localStorage.getItem(KEY);
+  if (!id) { id = crypto.randomUUID().replaceAll("-", ""); localStorage.setItem(KEY, id); }
+  return id;
+}
+
+export function cartHeaders() {
+  return { "X-Cart-Id": ensureCartId() };
+}

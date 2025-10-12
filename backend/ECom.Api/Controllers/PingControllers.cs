@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 
+namespace ECom.Api.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class PingController : ControllerBase
