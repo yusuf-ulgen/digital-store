@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using ECom.Api.Models;
 using ECom.Api.Services;
 using ECom.Api.Auth;
+using ECom.Api.Middlewares;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,43 +26,50 @@ builder.Services.AddSingleton<IProductStore, InMemoryProductStore>();
 builder.Services.AddSingleton<ICartService, InMemoryCartService>();
 builder.Services.AddSingleton<IOrderService, InMemoryOrderService>();
 builder.Services.AddSingleton<IPaymentService, FakePaymentService>();
+builder.Services.AddSingleton<IEventLogger, InMemoryEventLogger>();
 
 /* ---------- Firebase Admin & Firestore ---------- */
 var projectId = builder.Configuration["Firebase:ProjectId"]
     ?? throw new Exception("Firebase:ProjectId eksik.");
 
-var credPath =
-    Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")
- ?? Environment.GetEnvironmentVariable("FIREBASE_CONFIG_PATH");
-
-if (string.IsNullOrWhiteSpace(credPath) || !File.Exists(credPath))
-    throw new Exception($"Service account JSON bulunamadı veya yol geçersiz: {credPath ?? "<null>"}");
-
-var adc = GoogleCredential.GetApplicationDefault();
-
-if (FirebaseApp.DefaultInstance == null)
+// Test harici ortamlarda FirebaseApp başlat
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    FirebaseApp.Create(new AppOptions { Credential = adc });
+    EnsureFirebaseApp(builder);
 }
+
+// AppOptions ile tek noktadan başlat
+static void EnsureFirebaseApp(WebApplicationBuilder builder)
+{
+    if (FirebaseApp.DefaultInstance is not null) return;   // idempotent
+
+    // Kimlik bilgisi yolu: config→ENV→default
+    var credPath =
+        builder.Configuration["FIREBASE_CREDENTIALS"]
+        ?? Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")
+        ?? "secrets/firebase-admin.json";
+
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.FromFile(credPath)
+    });
+}
+
+// Firestore (ADC ile) — prod/dev’de çalışır, testte Firestore’a ihtiyacın yoksa testlerde bu servisi mock’la
+var adc = GoogleCredential.GetApplicationDefault();
+builder.Services.AddSingleton(_ =>
+    new FirestoreDbBuilder { ProjectId = projectId, Credential = adc }.Build());
 
 /* ---------- Auth ---------- */
 builder.Services.AddAuthentication("Firebase")
     .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>("Firebase", _ => {});
 
-// Role policy’lerini Role claim’ine bağlı tutmak yerine esnek yapıyoruz
-builder.Services.AddAuthorization(opts =>
+builder.Services.AddAuthorization(options =>
 {
-    opts.AddPolicy("ProductsWrite", p => p.RequireAssertion(ctx =>
-        ctx.User.IsInRole("Admin") || ctx.User.IsInRole("Staff")));
-    opts.AddPolicy("OrdersManage", p => p.RequireAssertion(ctx =>
-        ctx.User.IsInRole("Admin") || ctx.User.IsInRole("Staff")));
-    opts.AddPolicy("CartCheckout", p => p.RequireAssertion(ctx =>
-        ctx.User.IsInRole("Customer") || ctx.User.IsInRole("Admin") || ctx.User.IsInRole("Staff")));
+    options.AddPolicy("ProductsWrite", p => p.RequireClaim("role", "Admin", "Staff"));
+    options.AddPolicy("OrdersManage",  p => p.RequireClaim("role", "Admin", "Staff"));
+    options.AddPolicy("CartCheckout",  p => p.RequireClaim("role", "Customer"));
 });
-
-/* ---------- Firestore DI ---------- */
-builder.Services.AddSingleton(_ =>
-    new FirestoreDbBuilder { ProjectId = projectId, Credential = adc }.Build());
 
 /* ---------- CORS ---------- */
 var allowedFromConfig = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
@@ -88,22 +97,13 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT Bearer token"
+        Description = "Firebase ID token: 'Bearer <ID_TOKEN>' olarak gir"
     };
-    // Tanım
     c.AddSecurityDefinition("Bearer", bearerScheme);
-
-    // **Doğru referans ile** global gereksinim
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-        {
-            new OpenApiSecurityScheme {
-                Reference = new OpenApiReference {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { new OpenApiSecurityScheme {
+              Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }}, Array.Empty<string>() }
     });
 });
 
@@ -117,11 +117,7 @@ if (!string.IsNullOrWhiteSpace(adminEmail))
     {
         var user = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(adminEmail);
         var dict = (user.CustomClaims ?? new Dictionary<string, object>()).ToDictionary(k => k.Key, v => v.Value);
-        // Tekil role:
         dict["role"] = "Admin";
-        // Alternatif dizi:
-        // dict["roles"] = new[] { "Admin" };
-
         await FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(user.Uid, dict);
         Console.WriteLine($"[BOOTSTRAP] {adminEmail} → Admin atandı");
     }
@@ -132,33 +128,37 @@ if (!string.IsNullOrWhiteSpace(adminEmail))
 }
 
 /* ---------- Pipeline ---------- */
-if (app.Environment.IsDevelopment())
+// Swagger en başta
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECom API v1");
-        c.RoutePrefix = "swagger";
-    });
-    app.MapGet("/", () => Results.Redirect("/swagger"));
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECom API v1");
+    c.RoutePrefix = "swagger";
+});
+
+// app.UseHttpsRedirection(); // http kullanıyorsan kapalı kalsın
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseRouting();
 app.UseCors("frontend");
-app.UseAuthentication();   // ÖNEMLİ: Swagger Authorization header’ını burada işler
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+// root ve health — Swagger’a gizli
+app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+app.MapGet("/health", () => Results.Text("ok")).ExcludeFromDescription();
+
 /* ---------- Helpers: Token doğrulama ve rol kontrolü ---------- */
-static string? ExtractBearer(Microsoft.Extensions.Primitives.StringValues header)
+static string? ExtractBearer(StringValues header)
     => header.Count == 0 ? null :
        header[0].StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? header[0][7..] : header[0];
 
-static async Task<FirebaseToken?> VerifyAndDecodeAsync(string? bearerHeader)
+static async Task<FirebaseToken?> VerifyAndDecodeAsync(StringValues authHeader)
 {
-    var token = ExtractBearer(bearerHeader ?? string.Empty);
+    var token = ExtractBearer(authHeader);
     if (string.IsNullOrWhiteSpace(token)) return null;
     try { return await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(token); }
     catch { return null; }
@@ -166,13 +166,9 @@ static async Task<FirebaseToken?> VerifyAndDecodeAsync(string? bearerHeader)
 
 static bool HasAnyRole(FirebaseToken tok, params string[] roles)
 {
-    // Hem "role" (string) hem "roles" (array) desteği
-    if (tok.Claims.TryGetValue("role", out var single) && single is string sr && roles.Contains(sr))
-        return true;
-
+    if (tok.Claims.TryGetValue("role", out var single) && single is string sr && roles.Contains(sr)) return true;
     if (tok.Claims.TryGetValue("roles", out var multi) && multi is IEnumerable<object> arr)
         return arr.OfType<string>().Any(r => roles.Contains(r));
-
     return false;
 }
 
@@ -182,7 +178,7 @@ var fsProducts = app.MapGroup("/api/fs/products").WithTags("Products (Firestore)
 fsProducts.MapGet("", async (HttpRequest req, FirestoreDb db) =>
 {
     var decoded = await VerifyAndDecodeAsync(req.Headers.Authorization);
-    if (decoded is null) return Results.Unauthorized(); // sadece token şartı (istersen public yapabilirsin)
+    if (decoded is null) return Results.Unauthorized();
 
     var snap = await db.Collection("products").OrderByDescending("createdAt").GetSnapshotAsync();
     var list = snap.Documents.Select(d => { var m = d.ToDictionary(); m["id"] = d.Id; return m; });
@@ -234,4 +230,5 @@ fsProducts.MapDelete("/{id}", async (HttpRequest req, FirestoreDb db, string id)
 });
 
 app.Run();
+
 public partial class Program { }

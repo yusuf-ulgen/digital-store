@@ -1,6 +1,17 @@
+using System.Linq;
+
 namespace ECom.Api.Models;
 
-public enum OrderStatus { Created, Paid, Packed, Shipped, Delivered, Cancelled }
+public enum OrderStatus
+{
+    Created,
+    Paid,
+    Packed,
+    Shipped,
+    Delivered,
+    Cancelled, // (Dikkat: çift 'l')  — Servisteki tabloyla tutarlı.
+    Refunded
+}
 
 public class OrderItem
 {
@@ -21,13 +32,17 @@ public class Customer
 
 public class Order
 {
+    // Varsayılan id formatı: ord_xxxxxxxxxx
     public string Id { get; set; } = "ord_" + Guid.NewGuid().ToString("N")[..10];
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
     public string? CartId { get; set; }
     public List<OrderItem> Items { get; set; } = new();
     public decimal Total => Items.Sum(i => i.LineTotal);
+
     public OrderStatus Status { get; set; } = OrderStatus.Created;
     public string? PaymentId { get; set; }
     public Customer? Customer { get; set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

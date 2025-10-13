@@ -56,25 +56,22 @@
           "dependencies": {
             "FluentAssertions": {
               "target": "Package",
-              "version": "[8.7.1, )"
+              "version": "[6.12.0, )"
             },
             "Microsoft.AspNetCore.Mvc.Testing": {
               "target": "Package",
-              "version": "[9.0.9, )"
+              "version": "[9.0.3, )"
             },
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
-              "version": "[17.12.0, )"
-            },
-            "coverlet.collector": {
-              "target": "Package",
-              "version": "[6.0.2, )"
+              "version": "[17.11.1, )"
             },
             "xunit": {
               "target": "Package",
-              "version": "[2.9.2, )"
+              "version": "[2.9.0, )"
             },
             "xunit.runner.visualstudio": {
+              "suppressParent": "All",
               "target": "Package",
               "version": "[2.8.2, )"
             }

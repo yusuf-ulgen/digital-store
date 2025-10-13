@@ -12,7 +12,7 @@ public class ProductsController : ControllerBase
     private readonly IProductStore _store;
     public ProductsController(IProductStore store) => _store = store;
 
-    // PUBLIC READ
+    // PUBLIC READ (korumasız)
     [HttpGet]
     public IActionResult GetAll() => Ok(_store.GetAll());
 
@@ -36,9 +36,10 @@ public class ProductsController : ControllerBase
         return p is null ? NotFound() : NoContent();
     }
 
-    // DELETE → Sadece Admin
+    // DELETE → (Şimdilik) Admin/Staff ile aynı policy
+    // Sadece Admin silecek dersen Program.cs'e "ProductsDelete" (role=Admin) policy ekleriz.
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "ProductsWrite")]
     public IActionResult DeleteProduct(string id) => _store.Delete(id) ? NoContent() : NotFound();
 }
 

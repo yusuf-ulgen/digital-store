@@ -1,3 +1,5 @@
+using System.Linq;
+using ECom.Api.Middlewares;
 using ECom.Api.Models;
 using ECom.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,17 +13,20 @@ public class OrdersController : ControllerBase
 {
     private readonly ICartService _carts;
     private readonly IOrderService _orders;
+    private readonly IEventLogger _events;
 
-    public OrdersController(ICartService carts, IOrderService orders)
+    public OrdersController(ICartService carts, IOrderService orders, IEventLogger events)
     {
         _carts = carts;
         _orders = orders;
+        _events = events;
     }
 
     public record CreateOrderDto(string CartId, Customer? Customer);
 
-    // CREATE (müşteri)
+    // CREATE → müşteri
     [HttpPost]
+    [Authorize(Policy = "CartCheckout")]
     public ActionResult<Order> Create([FromBody] CreateOrderDto body)
     {
         var cart = _carts.Get(body.CartId);
@@ -30,23 +35,43 @@ public class OrdersController : ControllerBase
 
         var order = _orders.CreateFromCart(body.CartId, cart, body.Customer);
         _carts.Clear(body.CartId);
-        return Ok(order);
+        return Ok(order); // istersen CreatedAtAction'a çevirebiliriz
     }
 
-    // READ
+    // READ → şimdilik genel auth
     [HttpGet("{id}")]
+    [Authorize]
     public ActionResult<Order> Get(string id)
     {
         var o = _orders.Get(id);
         return o is null ? NotFound() : Ok(o);
     }
 
-    // UPDATE STATUS (Admin/Staff)
+    // UPDATE STATUS → Admin/Staff
     [HttpPut("{id}/status")]
     [Authorize(Policy = "OrdersManage")]
-    public IActionResult UpdateStatus(string id, [FromBody] UpdateOrderStatusDto dto)
+    public async Task<IActionResult> UpdateStatus(string id, [FromBody] UpdateOrderStatusDto dto)
     {
+        var before = _orders.Get(id);
+        if (before is null) return NotFound();
+
         var updated = _orders.UpdateStatus(id, dto.Status);
-        return updated is null ? NotFound() : NoContent();
+        if (updated is null) return NotFound();
+
+        // Event log
+        var cid = HttpContext.Items[CorrelationIdMiddleware.HeaderName]?.ToString();
+        var uid = User.Identity?.Name ?? User.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
+
+        await _events.LogAsync(new EventLog(
+            At: DateTimeOffset.UtcNow,
+            Type: "OrderStatusChanged",
+            OrderId: id,
+            OldStatus: before.Status.ToString(),
+            NewStatus: dto.Status.ToString(),
+            UserId: uid,
+            CorrelationId: cid
+        ));
+
+        return NoContent();
     }
 }
