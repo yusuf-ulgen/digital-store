@@ -1,0 +1,40 @@
+/* Tablo satırları daha sıkı ama okunaklı */
+table.min-w-full th,
+table.min-w-full td {
+  line-height: 1.2;
+}
+
+/* Scrollbar incelt (WebKit) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #d6d3d1; /* stone-300 */
+  border-radius: 9999px;
+  border: 2px solid #f5f5f4; /* stone-100/50 */
+}
+*::-webkit-scrollbar-track {
+  background: #f5f5f4; /* stone-100/50 */
+}
+
+/* Badge’lerde metin biraz daha net dursun */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+/* Kart kenarları yumuşak */
+.card {
+  border: 1px solid #e7e5e4; /* stone-200 */
+  border-radius: 16px;
+  background: white;
+}
+
+/* Hover utility (ince) */
+.row-hover:hover {
+  background: #fafaf9; /* stone-50 */
+}

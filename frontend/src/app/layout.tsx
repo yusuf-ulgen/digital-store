@@ -1,23 +1,19 @@
+import "@/app/globals.css";
+import "@/styles/admin.css";
 import type { Metadata } from "next";
-import "./globals.css";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import { CartProvider } from "@/lib/cart";
+import ToastProvider from "@/components/ui/ToastProvider";
 
 export const metadata: Metadata = {
-  title: "ULGEN Paslanmaz",
-  description: "Kalitelinin adresi",
+  title: "Ülgen Paslanmaz",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
       <body>
-        <CartProvider>
-        <Header />
-        <main className="container-tight py-8">{children}</main>
-        <Footer />
-        </CartProvider>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

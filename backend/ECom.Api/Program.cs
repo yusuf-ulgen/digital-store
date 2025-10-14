@@ -15,18 +15,28 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.OpenApi.Models;
+using ECom.Api.Services.Orders;
+using ECom.Api.Services.Inventory;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 /* ---------- MVC / Controllers ---------- */
 builder.Services.AddControllers();
-
 /* ---------- Domain Services (In-Memory) ---------- */
 builder.Services.AddSingleton<IProductStore, InMemoryProductStore>();
 builder.Services.AddSingleton<ICartService, InMemoryCartService>();
-builder.Services.AddSingleton<IOrderService, InMemoryOrderService>();
+// Mevcut CRUD sipariş servisin
+builder.Services.AddSingleton<ECom.Api.Services.IOrderService, InMemoryOrderService>();
 builder.Services.AddSingleton<IPaymentService, FakePaymentService>();
-builder.Services.AddSingleton<IEventLogger, InMemoryEventLogger>();
+// Event logger — tam nitelikli
+builder.Services.AddSingleton<
+    ECom.Api.Services.Observability.IEventLogger,
+    ECom.Api.Services.Observability.InMemoryEventLogger>();
+// State machine servisi
+builder.Services.AddScoped<IOrderStateService, OrderStateService>();
+// Stok (şimdilik Noop)
+builder.Services.AddScoped<IInventoryService, NoopInventoryService>();
 
 /* ---------- Firebase Admin & Firestore ---------- */
 var projectId = builder.Configuration["Firebase:ProjectId"]

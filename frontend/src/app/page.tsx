@@ -1,6 +1,9 @@
-// src/app/page.tsx
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
+import { auth } from "@/lib/firebase";
 import AddToCartButton from "@/components/AddToCartButton";
 
 type Product = {
@@ -22,10 +25,25 @@ const tl = (n: number) =>
   new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(n);
 
 export default function Home() {
+  useEffect(() => {
+    // Kullanıcı giriş yaptıysa otomatik token çek
+    const checkUser = async () => {
+      if (!auth.currentUser) {
+        console.log("⚠️ Henüz login değil, token alınmadı.");
+        return;
+      }
+      const token = await auth.currentUser.getIdToken(true);
+      console.log("🔥 Token otomatik alındı:", token);
+    };
+    checkUser();
+  }, []);
+
   return (
     <section className="container-tight space-y-12">
       <div className="section-head">
-        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Şef Bıçakları</h2>
+        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+          Şef Bıçakları
+        </h2>
         <Link className="link-muted" href="/products">
           Tümünü Gör
         </Link>
@@ -42,11 +60,12 @@ export default function Home() {
               className="w-full aspect-[4/3] object-cover"
               priority
             />
-
-            <div className="text-sm opacity-80 line-clamp-2" style={{ fontSize: 18, fontWeight: 500 }}>
+            <div
+              className="text-sm opacity-80 line-clamp-2"
+              style={{ fontSize: 18, fontWeight: 500 }}
+            >
               {p.title}
             </div>
-
             <div className="price-line">
               {p.oldPrice ? (
                 <>
@@ -57,14 +76,7 @@ export default function Home() {
                 <span className="price-now">{tl(p.price)}</span>
               )}
             </div>
-
-            <AddToCartButton
-              id={p.id}
-              title={p.title}
-              price={p.price}
-              imageUrl={p.imageUrl}
-              stock={p.stock}
-            />
+            <AddToCartButton {...p} />
           </article>
         ))}
       </div>

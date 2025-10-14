@@ -1,6 +1,14 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+// src/lib/firebase.ts
+import { initializeApp, getApps } from "firebase/app";
+import {
+  getAuth,
+  connectAuthEmulator,
+  onAuthStateChanged,
+} from "firebase/auth";
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -12,29 +20,38 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+// 🔹 Aynı app birden fazla initialize edilmesin
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// İsteğe bağlı: emulator
+// 🔹 (Opsiyonel) Emulator bağlantısı
 if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "1") {
   try {
     connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
     connectFirestoreEmulator(db, "localhost", 8080);
-    // storage emulator kullanıyorsan: connectStorageEmulator(storage, "localhost", 9199)
   } catch {
-    // aynı modül birden fazla kez import edilirse emulator bağlama hatası verebilir, sessiz geç
+    /* ignore */
   }
 }
 
+// 🔹 Tarayıcıda debug komutu: window.getIdToken()
 if (typeof window !== "undefined") {
-  // Geçici debug helper
-  (window as any).getIdToken = async () => {
-    const u = getAuth().currentUser;
-    if (!u) { console.warn("No user"); return null; }
-    const t = await u.getIdToken(/* forceRefresh? */ false);
-    console.log("ID TOKEN:", t);
+  (window as any).getIdToken = async (forceRefresh = true) => {
+    const u = auth.currentUser;
+    if (!u) {
+      console.warn("🚫 Henüz giriş yapılmamış kullanıcı yok.");
+      return null;
+    }
+    const t = await u.getIdToken(forceRefresh);
+    console.log("✅ Firebase ID Token:", t);
     return t;
   };
+
+  // 🔹 Konsolda bilgi amaçlı: giriş/çıkış dinleyici
+  onAuthStateChanged(auth, (user) => {
+    if (user) console.log("👤 Oturum açık:", user.email);
+    else console.log("👋 Oturum kapalı.");
+  });
 }

@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using ECom.Api.Models.Orders; // InvalidStateTransitionException için
 
 namespace ECom.Api.Middlewares;
 
@@ -26,7 +27,8 @@ public class GlobalExceptionMiddleware
                 Title = title,
                 Status = (int)status,
                 Type = $"https://httpstatuses.com/{(int)status}",
-                Detail = ex is InvalidOperationException ? ex.Message : null,
+                // InvalidStateTransitionException ve InvalidOperationException için detay mesajını göster
+                Detail = (ex is InvalidOperationException || ex is InvalidStateTransitionException) ? ex.Message : null,
                 Extensions = { ["correlationId"] = cid }
             };
 
@@ -40,9 +42,11 @@ public class GlobalExceptionMiddleware
         ex switch
         {
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized"),
-            KeyNotFoundException        => (HttpStatusCode.NotFound, "Not Found"),
-            InvalidOperationException   => (HttpStatusCode.Conflict, "Conflict"),
-            ArgumentException           => (HttpStatusCode.BadRequest, "Bad Request"),
-            _                           => (HttpStatusCode.InternalServerError, "Internal Server Error")
+            KeyNotFoundException => (HttpStatusCode.NotFound, "Not Found"),
+            // HATALI GEÇİŞ → 409 + özel başlık
+            InvalidStateTransitionException => (HttpStatusCode.Conflict, "InvalidStateTransition"),
+            InvalidOperationException => (HttpStatusCode.Conflict, "Conflict"),
+            ArgumentException => (HttpStatusCode.BadRequest, "Bad Request"),
+            _ => (HttpStatusCode.InternalServerError, "Internal Server Error")
         };
 }
