@@ -1,0 +1,71 @@
+@base = http://localhost:5180
+@token = eyJhbGciOiJSUzI1NiIsImtpZCI6ImE1YTAwNWU5N2NiMWU0MjczMDBlNTJjZGQ1MGYwYjM2Y2Q4MDYyOWIiLCJ0eXAiOiJKV1QifQ.eyJyb2xlIjoiQWRtaW4iLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vYml0aXJtZXByb2plc2ktNzJkZGMiLCJhdWQiOiJiaXRpcm1lcHJvamVzaS03MmRkYyIsImF1dGhfdGltZSI6MTc2MDUzNTM1MCwidXNlcl9pZCI6IlRwRDh0aWRzeEZUTXRYRFg5QThjYmJvNHpJbTEiLCJzdWIiOiJUcEQ4dGlkc3hGVE10WERYOUE4Y2JibzR6SW0xIiwiaWF0IjoxNzYwNTM1MzUxLCJleHAiOjE3NjA1Mzg5NTEsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsiYWRtaW5AZXhhbXBsZS5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.on4ML9M-WV6pHaErHssgIvSbLdi3XO1HTE5vO3Y7ceiNCvW_FW3T_VKyPpMeYVpJq2e79cATY1nrSo43-I-kiYVCNnA0bMc9UAOuTaWZGcXjT-E1GdJ0n9K9JqKeEvYPhrDWMo_XMFWnTsvjFQ6Cg2TARRz3DLk1nafd7j4o36maXXdd_SYQwe1JqEfWZ5Mrlfvka2eTrTBK6ZTVf02tZq0L9n9vIIfowC6jSw0rFlKXWLiv1-_BYYIeLQxeDVA7FiamxK4r61fwHgFh0XoPpE1cxU9Bfjbv_iL0nLPxadwBNIWQDvECm0hlFimV0bet1vWyACSFc43xrqRjEHOMow
+
+### ORDERS — List
+GET {{base}}/api/orders?status=Created&page=1&pageSize=10&sort=-createdAt
+Authorization: Bearer {{token}}
+
+### ORDERS — Detail
+GET {{base}}/api/orders/ORD-1001
+Authorization: Bearer {{token}}
+
+### ORDERS — Change Status (valid)
+POST {{base}}/api/orders/ORD-1001/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "to": "Paid",
+  "reason": "test"
+}
+
+### ORDERS — Change Status (invalid → 409 expected)
+POST {{base}}/api/orders/ORD-DELIVERED/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "to": "Paid",
+  "reason": "invalid-flow"
+}
+
+### PRODUCTS — List
+GET {{base}}/api/products?search=knife&page=1&pageSize=10&sort=-createdAt
+Authorization: Bearer {{token}}
+
+### PRODUCTS — Create
+POST {{base}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Test Ürün",
+  "price": 199,
+  "stock": 5,
+  "active": true
+}
+
+### PRODUCTS — Update
+PUT {{base}}/api/products/PRODUCT_ID
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stock": 12
+}
+
+### PRODUCTS — Delete
+DELETE {{base}}/api/products/PRODUCT_ID
+Authorization: Bearer {{token}}
+
+### USERS — List
+GET {{base}}/api/users?role=Customer&q=@example.com&page=1
+Authorization: Bearer {{token}}
+
+### LOGS — List
+GET {{base}}/api/logs?page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### LOGS — Filtered (path + code)
+GET {{base}}/api/logs?path=/api/orders&code=409&page=1
+Authorization: Bearer {{token}}

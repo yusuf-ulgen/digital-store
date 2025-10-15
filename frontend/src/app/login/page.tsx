@@ -1,51 +1,91 @@
+// src/app/login/page.tsx  (tam dosyayı değiştir)
 "use client";
+
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/ToastProvider";
+import { setToken, loginAndGetToken } from "@/lib/auth";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { show } = useToast();
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!email || !password) {
+      show({ title: "Eksik bilgi", message: "E-posta ve şifre zorunlu.", variant: "warning" });
+      return;
+    }
+    setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const base = process.env.NEXT_PUBLIC_API_BASE!;
+      let ok = false;
+
+      // 1) Backend login dene (varsa)
+      try {
+        const res = await fetch(`${base}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        if (res.ok) {
+          const data = await res.json(); // { token: "..." }
+          if (data?.token) {
+            setToken(data.token);
+            ok = true;
+          }
+        }
+      } catch {
+        /* bağlantı hatası -> firebase'e düşeceğiz */
+      }
+
+      // 2) Backend başarısızsa Firebase e-posta/şifre
+      if (!ok) {
+        const idToken = await loginAndGetToken(email, password); // setToken içinde event de atılıyor
+        if (idToken) ok = true;
+      }
+
+      if (!ok) {
+        show({ title: "Giriş başarısız", message: "Kimlik doğrulama yapılamadı.", variant: "error" });
+        return;
+      }
+
+      show({ title: "Hoş geldin!", message: "Giriş başarılı.", variant: "success" });
       router.push("/admin");
     } catch (err: any) {
-      setError(err.message);
+      show({ title: "Bağlantı hatası", message: String(err?.message || err), variant: "error" });
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="flex flex-col items-center mt-16">
-      <h2 className="text-2xl mb-4 font-semibold">Giriş Yap</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-72">
+    <div className="mx-auto max-w-sm py-10">
+      <h1 className="mb-4 text-xl font-semibold">Giriş Yap</h1>
+      <form onSubmit={onSubmit} className="space-y-3">
         <input
-          type="email"
-          placeholder="E-posta"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border px-3 py-2 rounded"
+          type="email" placeholder="E-posta"
+          value={email} onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded border px-3 py-2" required
         />
         <input
-          type="password"
-          placeholder="Şifre"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border px-3 py-2 rounded"
+          type="password" placeholder="Şifre"
+          value={password} onChange={(e) => setPassword(e.target.value)}
+          className="w-full rounded border px-3 py-2" required
         />
         <button
-          type="submit"
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          type="submit" disabled={loading}
+          className="w-full rounded bg-stone-900 px-3 py-2 text-white disabled:opacity-50"
         >
-          Giriş
+          {loading ? "Giriş yapılıyor..." : "Giriş"}
         </button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
       </form>
+      <div className="mt-4 text-xs text-stone-500">
+        Girişten sonra DevTools Console’a <code>localStorage.getItem("token")</code> yazıp kontrol edebilirsin.
+      </div>
     </div>
   );
 }

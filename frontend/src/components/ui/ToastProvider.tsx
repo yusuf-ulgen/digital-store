@@ -1,6 +1,7 @@
+// src/components/ui/ToastProvider.tsx
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 type ToastVariant = "default" | "success" | "warning" | "error";
@@ -10,7 +11,7 @@ export type Toast = {
   title?: string;
   message: string;
   variant?: ToastVariant;
-  durationMs?: number; // varsayılan 3000
+  durationMs?: number; // default 3000
 };
 
 type Ctx = {
@@ -27,6 +28,9 @@ export function useToast() {
 
 export default function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const show = useCallback((t: Omit<Toast, "id">) => {
     const id = crypto.randomUUID();
@@ -35,9 +39,8 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
       variant: "default",
       durationMs: 3000,
       ...t,
-    };
+}
     setToasts((arr) => [...arr, toast]);
-    // auto dismiss
     const dur = toast.durationMs!;
     window.setTimeout(() => {
       setToasts((arr) => arr.filter((x) => x.id !== id));
@@ -49,7 +52,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
   return (
     <ToastCtx.Provider value={ctx}>
       {children}
-      {typeof window !== "undefined" &&
+      {mounted &&
         createPortal(
           <div className="fixed right-4 top-4 z-[9999] flex w-[360px] max-w-[90vw] flex-col gap-2">
             {toasts.map((t) => (

@@ -1,6 +1,7 @@
-import "@/app/globals.css";
+// src/app/admin/layout.tsx
 import Guard from "@/components/admin/Guard";
 import Sidebar from "@/components/admin/Sidebar";
+// global css'ler zaten root layout'ta import ediliyor; tekrar etmene gerek yok.
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

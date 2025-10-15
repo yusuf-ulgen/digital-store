@@ -1,6 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "tailwindcss";
+
+/* kendi global stillerin aşağıda */
+
 
 /* Tema: kırık beyaz zemin + taş tonları */
 :root{

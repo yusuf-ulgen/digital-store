@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using ECom.Api.Middlewares;
 using ECom.Api.Models;                    // Order (eski model)
 using ECom.Api.Models.Orders;            // Yeni enum
-using ECom.Api.Services;                 // mevcut IOrderService (CRUD)
+using ECom.Api.Services;                 // ICartService, CRUD IOrderService
 using ECom.Api.Services.Orders;          // IOrderStateService
 using ECom.Api.Services.Observability;   // IEventLogger
 using OrderModel = ECom.Api.Models.Order;
@@ -16,7 +18,9 @@ using OrderStatusNew = ECom.Api.Models.Orders.OrderStatus;
 namespace ECom.Api.Controllers;
 
 [ApiController]
-[Route("api/orders")]
+// İki route birden: /api/orders ve /api/v1/orders
+[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public sealed class OrdersController : ControllerBase
 {
     private readonly ICartService _carts;
@@ -36,11 +40,61 @@ public sealed class OrdersController : ControllerBase
         _events = events;
     }
 
-    // ---- DTO'lar ----
+    /* -------------------- DTO'lar -------------------- */
+    // Listeleme sorgusu
+    public sealed record OrderQuery(
+        string? q,
+        string? status,
+        string? from,
+        string? to,
+        int page = 1,
+        int pageSize = 10,
+        string? sort = "-createdAt"
+    );
+
+    // Frontend tablo özeti
+    public sealed record OrderSummary(
+        string id,
+        string? customerName,
+        string? customerEmail,
+        decimal total,
+        string status,
+        DateTime createdAt
+    );
+
+    // Paginated cevap şeması (JSON alanları: items/page/pageSize/total)
+    public sealed record Paginated<T>(IEnumerable<T> items, int page, int pageSize, int total);
+
+    // Create DTO
     public sealed record CreateOrderDto(string CartId, Customer? Customer);
+
+    // Status change body
     public sealed record ChangeStatusRequest(string To);
 
-    // ---- CREATE (Customer) ----
+    /* -------------------- LIST & SEARCH -------------------- */
+    // GET /api/orders?page=...&pageSize=...&q=...
+    [HttpGet]
+    [Authorize] // gerekirse policy: OrdersManage
+    public ActionResult<Paginated<OrderSummary>> List([FromQuery] OrderQuery q)
+    {
+        // Şimdilik boş veri dönelim ki 200 olsun (ileride _orders ile gerçek listeye bağlanır)
+        var result = new Paginated<OrderSummary>(
+            Enumerable.Empty<OrderSummary>(),
+            q.page,
+            q.pageSize,
+            0
+        );
+        return Ok(result);
+    }
+
+    // POST /api/orders/search  → Frontend’in 405 aldığı yer için
+    [HttpPost("search")]
+    [Authorize] // gerekirse policy: OrdersManage
+    public ActionResult<Paginated<OrderSummary>> Search([FromBody] OrderQuery q)
+        => List(q);
+
+    /* -------------------- CREATE -------------------- */
+    // POST /api/orders
     [HttpPost]
     [Authorize(Policy = "CartCheckout")]
     public ActionResult<OrderModel> Create([FromBody] CreateOrderDto body)
@@ -54,7 +108,8 @@ public sealed class OrdersController : ControllerBase
         return Ok(order);
     }
 
-    // ---- READ (Genel auth) ----
+    /* -------------------- READ -------------------- */
+    // GET /api/orders/{id}
     [HttpGet("{id}")]
     [Authorize]
     public ActionResult<OrderModel> Get(string id)
@@ -63,7 +118,8 @@ public sealed class OrdersController : ControllerBase
         return o is null ? NotFound() : Ok(o);
     }
 
-    // ---- UPDATE STATUS (Admin/Staff) ----
+    /* -------------------- UPDATE STATUS -------------------- */
+    // PUT /api/orders/{id}/status
     [HttpPut("{id}/status")]
     [Authorize(Policy = "OrdersManage")]
     public async Task<IActionResult> ChangeStatus(
@@ -71,8 +127,7 @@ public sealed class OrdersController : ControllerBase
         [FromBody] ChangeStatusRequest body,
         CancellationToken ct)
     {
-        // Yeni enum ile parse (ambiguous hatasını böyle bitiriyoruz)
-        if (!System.Enum.TryParse<OrderStatusNew>(body.To, ignoreCase: true, out var to))
+        if (!Enum.TryParse<OrderStatusNew>(body.To, ignoreCase: true, out var to))
         {
             return Problem(
                 title: "ValidationError",
@@ -94,10 +149,6 @@ public sealed class OrdersController : ControllerBase
         try
         {
             var updated = await _orderState.ChangeStatusAsync(id, to, userId, correlationId, ct);
-
-            // NOT: Servis zaten OrderStatusChanged event’ini yazıyor.
-            // Burada ikinci kez log yazmıyoruz; böylece enum dönüştürme hataları da biter.
-
             return Ok(new { updated.Id, Status = updated.Status.ToString() });
         }
         catch (InvalidStateTransitionException ex)

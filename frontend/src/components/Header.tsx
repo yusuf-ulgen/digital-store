@@ -3,13 +3,23 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type CSSProperties,
+} from "react";
 import { useCart } from "@/lib/cart";
 
-/* Kısa stil yardımcıları */
-const container: React.CSSProperties = { maxWidth: "1280px", margin: "0 auto", padding: "0 16px" };
-const rowBetween: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "space-between" };
-const rowCenter: React.CSSProperties = { display: "flex", alignItems: "center" };
+// 🔧 Tek yerden import et; tekrarını SİL
+import { getToken, clearToken, logout as doLogout } from "@/lib/auth";
+
+/* ---- Kısa stil yardımcıları ---- */
+const container: CSSProperties = { maxWidth: "1280px", margin: "0 auto", padding: "0 16px" };
+const rowBetween: CSSProperties = { display: "flex", alignItems: "center", justifyContent: "space-between" };
+const rowCenter: CSSProperties = { display: "flex", alignItems: "center" };
 
 const SEARCH_LS = "ulgen.searchHistory.v1";
 
@@ -31,7 +41,9 @@ function TopInfoRow() {
     <div style={{ width: "100%", background: "#f7f8fa", color: "#6b7280" }}>
       <div style={{ ...container, ...rowBetween, padding: "8px 16px" }}>
         <div style={{ ...rowCenter, gap: 24 }}>
-          <a href="tel:05555555555" style={{ color: "#6b7280", textDecoration: "none" }}>0 555 555 55 55</a>
+          <a href="tel:05555555555" style={{ color: "#6b7280", textDecoration: "none" }}>
+            0 555 555 55 55
+          </a>
           <a href="mailto:ulgenpaslanmaz@gmail.com" style={{ color: "#6b7280", textDecoration: "none" }}>
             ulgenpaslanmaz@gmail.com
           </a>
@@ -49,7 +61,26 @@ function MainHeader() {
   const router = useRouter();
   const { count } = useCart();
 
-  // Logo modal
+  const handleLogout = async () => {
+  await doLogout();             // Firebase signOut + localStorage temizliği + "auth:changed" event
+  setHasToken(!!getToken());    // state'i yenile
+  router.push("/login");
+};
+
+  /* Token durumu (Giriş Yap / Çıkış Yap) */
+  const [hasToken, setHasToken] = useState(false);
+  useEffect(() => {
+  const refresh = () => setHasToken(!!getToken());
+  refresh();
+  window.addEventListener("storage", refresh);
+  window.addEventListener("auth:changed", refresh);
+  return () => {
+    window.removeEventListener("storage", refresh);
+    window.removeEventListener("auth:changed", refresh);
+  };
+}, []);
+
+  /* Logo modal */
   const [showLogo, setShowLogo] = useState(false);
   useEffect(() => {
     if (!showLogo) return;
@@ -58,13 +89,17 @@ function MainHeader() {
     return () => window.removeEventListener("keydown", onKey);
   }, [showLogo]);
 
-  // Arama kutusu (site-içi geçmiş)
+  /* Arama kutusu (site-içi geçmiş) */
   const [q, setQ] = useState("");
   const [openSug, setOpenSug] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
   const history = useMemo<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem(SEARCH_LS) || "[]"); } catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem(SEARCH_LS) || "[]");
+    } catch {
+      return [];
+    }
   }, [openSug]); // açılınca yeniden oku
 
   useEffect(() => {
@@ -78,8 +113,14 @@ function MainHeader() {
   const saveSearch = (term: string) => {
     const t = term.trim();
     if (!t) return;
-    const prev = (() => { try { return JSON.parse(localStorage.getItem(SEARCH_LS) || "[]"); } catch { return []; } })() as string[];
-    const next = [t, ...prev.filter(x => x.toLowerCase() !== t.toLowerCase())].slice(0, 8);
+    const prev = (() => {
+      try {
+        return JSON.parse(localStorage.getItem(SEARCH_LS) || "[]");
+      } catch {
+        return [];
+      }
+    })() as string[];
+    const next = [t, ...prev.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, 8);
     localStorage.setItem(SEARCH_LS, JSON.stringify(next));
   };
 
@@ -119,15 +160,23 @@ function MainHeader() {
             title="Logo büyüt (Anasayfa için Ctrl/⌘ ile tıkla)"
             style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", cursor: "zoom-in" }}
           >
-            <Image src="/LOGO.png" alt="ÜLGEN Paslanmaz" width={185} height={120} priority
-                   style={{ height: 90, width: "auto", objectFit: "contain" }} />
+            <Image
+              src="/LOGO.png"
+              alt="ÜLGEN Paslanmaz"
+              width={185}
+              height={120}
+              priority
+              style={{ height: 90, width: "auto", objectFit: "contain" }}
+            />
           </Link>
         </div>
 
         {/* Orta: Arama (yalnızca site-içi geçmiş) */}
         <div style={{ flex: "1 1 540px" }} ref={boxRef}>
           <form onSubmit={onSearch} style={{ display: "flex", position: "relative" }} autoComplete="off">
-            <label htmlFor="q" style={{ position: "absolute", left: -9999 }}>Ürün Ara</label>
+            <label htmlFor="q" style={{ position: "absolute", left: -9999 }}>
+              Ürün Ara
+            </label>
             <input
               id="q"
               name="ulgen-search"
@@ -136,42 +185,76 @@ function MainHeader() {
               autoCapitalize="none"
               spellCheck={false}
               value={q}
-              onChange={(e) => { setQ(e.target.value); setOpenSug(true); }}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setOpenSug(true);
+              }}
               onFocus={() => setOpenSug(true)}
               placeholder="Ürün Ara..."
               style={{
-                flex: 1, height: 56, border: "1px solid #d1d5db", borderRight: "none",
-                borderTopLeftRadius: 12, borderBottomLeftRadius: 12,
-                background: "#f6f7f9", padding: "0 14px", fontSize: 15, outline: "none",
+                flex: 1,
+                height: 56,
+                border: "1px solid #d1d5db",
+                borderRight: "none",
+                borderTopLeftRadius: 12,
+                borderBottomLeftRadius: 12,
+                background: "#f6f7f9",
+                padding: "0 14px",
+                fontSize: 15,
+                outline: "none",
               }}
             />
             <button
-              type="submit" aria-label="Ara"
+              type="submit"
+              aria-label="Ara"
               style={{
-                height: 56, padding: "0 20px", border: "1px solid #d1d5db",
-                borderTopRightRadius: 12, borderBottomRightRadius: 12,
-                background: "#2b2b2b", color: "#ffffff", cursor: "pointer",
+                height: 56,
+                padding: "0 20px",
+                border: "1px solid #d1d5db",
+                borderTopRightRadius: 12,
+                borderBottomRightRadius: 12,
+                background: "#2b2b2b",
+                color: "#ffffff",
+                cursor: "pointer",
               }}
-            >🔍</button>
+            >
+              🔍
+            </button>
 
-            {/* Öneriler (sadece bu sitede tutulan geçmiş) */}
+            {/* Öneriler */}
             {openSug && history.length > 0 && (
               <div
                 style={{
-                  position: "absolute", top: 58, left: 0, right: 0,
-                  background: "#ffffff", border: "1px solid #e5e7eb",
-                  borderRadius: 12, padding: "6px", boxShadow: "0 8px 30px rgba(0,0,0,.08)", zIndex: 10
+                  position: "absolute",
+                  top: 58,
+                  left: 0,
+                  right: 0,
+                  background: "#ffffff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  padding: "6px",
+                  boxShadow: "0 8px 30px rgba(0,0,0,.08)",
+                  zIndex: 10,
                 }}
               >
                 {history
-                  .filter(h => !q || h.toLowerCase().includes(q.toLowerCase()))
+                  .filter((h) => !q || h.toLowerCase().includes(q.toLowerCase()))
                   .map((h, i) => (
                     <button
-                      type="button" key={i}
-                      onClick={() => { setQ(h); onSearch(); }}
+                      type="button"
+                      key={i}
+                      onClick={() => {
+                        setQ(h);
+                        onSearch();
+                      }}
                       style={{
-                        width: "100%", textAlign: "left", padding: "10px 12px",
-                        borderRadius: 8, background: "transparent", border: "none", cursor: "pointer"
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
                       }}
                       onMouseOver={(e) => (e.currentTarget.style.background = "#f3f4f6")}
                       onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
@@ -182,8 +265,20 @@ function MainHeader() {
                 <div style={{ height: 1, background: "#eee", margin: "4px 6px" }} />
                 <button
                   type="button"
-                  onClick={() => { localStorage.removeItem(SEARCH_LS); setOpenSug(false); }}
-                  style={{ width: "100%", textAlign: "center", padding: "8px 12px", fontSize: 12, color: "#6b7280", border: "none", background: "transparent", cursor: "pointer" }}
+                  onClick={() => {
+                    localStorage.removeItem(SEARCH_LS);
+                    setOpenSug(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    textAlign: "center",
+                    padding: "8px 12px",
+                    fontSize: 12,
+                    color: "#6b7280",
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                  }}
                 >
                   Geçmişi temizle
                 </button>
@@ -192,16 +287,70 @@ function MainHeader() {
           </form>
         </div>
 
-        {/* Sağ: Giriş / Sepet */}
+        {/* Sağ: Giriş/Çıkış + Admin + Sepet */}
         <div style={{ ...rowCenter, gap: 24 }}>
-          <Link href="/login" style={{ color: "#111827", textDecoration: "none", fontSize: 15, display: "flex", flexDirection: "column", lineHeight: 1.1, alignItems: "flex-start" }}>
-            <span style={{ color: "#6b7280", fontSize: 13, marginBottom: 2 }}>Merhaba</span>
-            <span style={{ fontWeight: 600 }}>Giriş Yap</span>
+          <Link
+            href="/admin"
+            style={{ color: "#111827", textDecoration: "none", fontSize: 15, fontWeight: 600 }}
+          >
+            Admin
           </Link>
+
+          {hasToken ? (
+            <button
+              onClick={handleLogout}
+              style={{
+                color: "#111827",
+                textDecoration: "none",
+                fontSize: 15,
+                display: "flex",
+                flexDirection: "column",
+                lineHeight: 1.1,
+                alignItems: "flex-start",
+                background: "transparent",
+                border: "1px solid #e5e7eb",
+                padding: "8px 10px",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
+              title="Oturumu kapat"
+            >
+              <span style={{ color: "#6b7280", fontSize: 13, marginBottom: 2 }}>Merhaba</span>
+              <span style={{ fontWeight: 600 }}>Çıkış Yap</span>
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              style={{
+                color: "#111827",
+                textDecoration: "none",
+                fontSize: 15,
+                display: "flex",
+                flexDirection: "column",
+                lineHeight: 1.1,
+                alignItems: "flex-start",
+              }}
+            >
+              <span style={{ color: "#6b7280", fontSize: 13, marginBottom: 2 }}>Merhaba</span>
+              <span style={{ fontWeight: 600 }}>Giriş Yap</span>
+            </Link>
+          )}
 
           <Link href="/cart" style={{ position: "relative", color: "#111827", textDecoration: "none", fontSize: 15 }}>
             Sepet
-            <span style={{ position: "absolute", top: -10, right: -14, background: "#ef4444", color: "#ffffff", borderRadius: 999, fontSize: 11, lineHeight: 1, padding: "4px 6px" }}>
+            <span
+              style={{
+                position: "absolute",
+                top: -10,
+                right: -14,
+                background: "#ef4444",
+                color: "#ffffff",
+                borderRadius: 999,
+                fontSize: 11,
+                lineHeight: 1,
+                padding: "4px 6px",
+              }}
+            >
               {typeof count === "number" ? count : 0}
             </span>
           </Link>
@@ -227,7 +376,10 @@ function MainHeader() {
           }}
         >
           <button
-            onClick={(e) => { e.stopPropagation(); setShowLogo(false); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLogo(false);
+            }}
             aria-label="Kapat"
             style={{
               position: "absolute",
@@ -287,7 +439,17 @@ function MainNav() {
   return (
     <nav style={{ width: "100%", background: "#000000", color: "#ffffff" }}>
       <div style={{ ...container }}>
-        <ul style={{ ...rowCenter, gap: 32, padding: "12px 0", listStyle: "none", margin: 0, overflowX: "auto", whiteSpace: "nowrap" }}>
+        <ul
+          style={{
+            ...rowCenter,
+            gap: 32,
+            padding: "12px 0",
+            listStyle: "none",
+            margin: 0,
+            overflowX: "auto",
+            whiteSpace: "nowrap",
+          }}
+        >
           {items.map((it) => (
             <li key={it.href}>
               <Link href={it.href} style={{ color: "#ffffff", textDecoration: "none", fontWeight: 600, fontSize: 15 }}>
@@ -304,7 +466,16 @@ function MainNav() {
 /* ---- Dışa Açık Header ---- */
 export default function Header() {
   return (
-    <header style={{ position: "sticky", top: 0, zIndex: 50, width: "100%", boxShadow: "0 1px 2px rgba(0,0,0,.06)", background: "#ffffff" }}>
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        width: "100%",
+        boxShadow: "0 1px 2px rgba(0,0,0,.06)",
+        background: "#ffffff",
+      }}
+    >
       <AnnouncementBar />
       <TopInfoRow />
       <MainHeader />

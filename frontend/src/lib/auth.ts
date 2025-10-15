@@ -12,21 +12,22 @@ export type DecodedToken = {
 /* -------------------------
  * Local token helpers
  * ------------------------- */
-const TOKEN_KEY = "token";
+const KEY = "token";
 
-export function setToken(token: string) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(TOKEN_KEY, token);
-}
 
-export function clearToken() {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(TOKEN_KEY);
-}
+export const setToken = (t: string) => {
+  localStorage.setItem(KEY, t);
+  window.dispatchEvent(new Event("auth:changed"));
+};
+
+export const clearToken = () => {
+  localStorage.removeItem(KEY);
+  window.dispatchEvent(new Event("auth:changed"));
+};
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(KEY);
 }
 
 /* -------------------------

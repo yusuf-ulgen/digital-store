@@ -3,10 +3,21 @@
 
 import { getToken, getAuthHeader } from "@/lib/auth";
 
-export const API_BASE =
+const RAW_BASE =
   process.env.NEXT_PUBLIC_API_BASE ||
   process.env.NEXT_PUBLIC_API_URL || // backward-compat
   "";
+
+// BASE: sondaki /'ları at
+export const API_BASE = RAW_BASE.replace(/\/+$/, "");
+
+/* ---------------------------
+ * URL helper
+ * --------------------------- */
+function joinUrl(path: string) {
+  const rel = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE}${rel}`;
+}
 
 /* ---------------------------
  * Authorization helpers
@@ -34,7 +45,14 @@ async function withAuth(init?: RequestInit): Promise<RequestInit> {
 
 /** API_BASE öne ekleyip fetch yapan yardımcı (async auth) */
 export async function apiFetch<T = any>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = joinUrl(path);
+
+  // 👇 GEÇİCİ DEBUG LOG
+  if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.log("[api]", (init?.method ?? "GET").toUpperCase(), url);
+  }
+
   const res = await fetch(url, await withAuth(init));
 
   if (!res.ok) {
@@ -51,6 +69,11 @@ export async function apiFetch<T = any>(path: string, init?: RequestInit): Promi
       }
     } catch {
       /* yoksay */
+    }
+
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.warn("[api][err]", res.status, url, msg);
     }
     throw new Error(msg);
   }
@@ -78,12 +101,14 @@ export type ApiOpts = {
   cache?: RequestCache;
 };
 
-/**
- * Yüksek seviyeli çağrı: JSON body + header birleştirme + 204/JSON handling.
- * `idToken` verilirse onu kullanır; verilmezse getAuthHeader() ile taze token dener.
- */
 export async function api<T = any>(path: string, opts: ApiOpts = {}) {
-  const url = `${API_BASE}${path}`;
+  const url = joinUrl(path);
+
+  // 👇 GEÇİCİ DEBUG LOG
+  if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.log("[api]", (opts.method ?? "GET").toUpperCase(), url);
+  }
 
   // Header’lar
   const headers = new Headers({
@@ -118,6 +143,11 @@ export async function api<T = any>(path: string, opts: ApiOpts = {}) {
         if (text) msg = text;
       }
     } catch { /* yoksay */ }
+
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.warn("[api][err]", res.status, url, msg);
+    }
     throw new Error(msg);
   }
 
@@ -135,9 +165,22 @@ export async function api<T = any>(path: string, opts: ApiOpts = {}) {
 
 /** (Opsiyonel) Sync token ekleyen varyant — eski kullanım için */
 export async function apiFetchSyncAuth<T = any>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = joinUrl(path);
+
+  // 👇 GEÇİCİ DEBUG LOG
+  if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.log("[api-sync]", (init?.method ?? "GET").toUpperCase(), url);
+  }
+
   const res = await fetch(url, withAuthSync(init));
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.warn("[api-sync][err]", res.status, url);
+    }
+    throw new Error(`${res.status} ${res.statusText}`);
+  }
   if (res.status === 204) return undefined as T;
   const ct = res.headers.get("content-type") || "";
   if (ct.includes("application/json")) return (await res.json()) as T;

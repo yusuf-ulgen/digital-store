@@ -7,4 +7,12 @@ const nextConfig: NextConfig = {
   },
 };
 
+module.exports = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**" }, // ihtiyacına göre daralt
+    ],
+  },
+};
+
 export default nextConfig;
