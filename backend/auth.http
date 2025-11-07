@@ -2,7 +2,7 @@ POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=A
 Content-Type: application/json
 
 {
-  "email": "customer@example.com",
-  "password": "Customer1!",
+  "email": "admin@example.com",
+  "password": "Admin123!",
   "returnSecureToken": true
 }

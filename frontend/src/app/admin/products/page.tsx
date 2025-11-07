@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import DataTable from "@/components/admin/DataTable";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import ProductForm, { type ProductInput } from "@/components/admin/products/ProductForm";
 import {
   listProducts,
-  createProduct,
   updateProduct,
   deleteProduct,
   type Product,
@@ -15,19 +13,16 @@ import {
 } from "@/lib/api/products-admin";
 
 export default function ProductsPage() {
-  // liste durumu
   const [rows, setRows] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  // filtre / sayfalama
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [sort] = useState<string>("-createdAt");
 
-  // form + delete
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
@@ -66,10 +61,6 @@ export default function ProductsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
-  const openCreate = () => {
-    setEditing(null);
-    setFormOpen(true);
-  };
   const openEdit = (p: Product) => {
     setEditing(p);
     setFormOpen(true);
@@ -80,12 +71,11 @@ export default function ProductsPage() {
     try {
       if (editing) {
         await updateProduct(editing.id, data);
-      } else {
-        await createProduct(data);
       }
       setFormOpen(false);
       await reload();
     } catch (e: any) {
+      console.error("Form kaydetme hatası:", e);
       alert(String(e?.message ?? e));
     } finally {
       setSaving(false);
@@ -100,6 +90,7 @@ export default function ProductsPage() {
       setAskDelete(null);
       await reload();
     } catch (e: any) {
+      console.error("Silme hatası:", e);
       alert(String(e?.message ?? e));
     } finally {
       setDeleting(false);
@@ -108,7 +99,6 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Başlık + arama + yeni */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold">Products</h2>
         <div className="flex items-center gap-2">
@@ -118,12 +108,7 @@ export default function ProductsPage() {
             placeholder="Ara (başlık, kategori)…"
             className="w-56 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500"
           />
-          <button
-            onClick={openCreate}
-            className="rounded-lg bg-stone-800 px-3 py-2 text-sm text-white"
-          >
-            Yeni Ürün
-          </button>
+          {/* YENİ ÜRÜN BUTONU BURADAN KALDIRILDI */}
         </div>
       </div>
 
@@ -155,6 +140,7 @@ export default function ProductsPage() {
                     src={r.imageUrl}
                     alt={r.title}
                     className="h-10 w-10 rounded-md object-cover"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
                   />
                 ) : (
                   <div className="h-10 w-10 rounded-md bg-stone-100" />
@@ -243,7 +229,6 @@ export default function ProductsPage() {
         />
       )}
 
-      {/* Create/Edit Modal */}
       <ProductForm
         open={formOpen}
         title={editing ? "Ürünü Düzenle" : "Yeni Ürün"}
@@ -264,7 +249,6 @@ export default function ProductsPage() {
         onClose={() => setFormOpen(false)}
       />
 
-      {/* Delete Confirm */}
       <ConfirmDialog
         open={!!askDelete}
         title="Ürünü sil"

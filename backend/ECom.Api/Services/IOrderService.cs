@@ -6,10 +6,10 @@ public interface IOrderService
 {
     Order CreateFromCart(string cartId, Cart cart, Customer? customer);
     Order? Get(string id);
-
-    // Durum güncelleme (biz ekledik)
+    Task<List<Order>> GetAllAsync(CancellationToken ct = default);
     Order? UpdateStatus(string id, OrderStatus status);
-
-    // Arayüzde zaten var (hata bundan geliyor)
     Order? MarkPaid(string id, string transactionId);
+
+    // Artık ECom.Api.Models içindeki OrderDto ve CreateOrderDto'yu kullanıyor
+    Task<OrderDto> CreateManualAsync(CreateOrderDto dto, CancellationToken ct);
 }

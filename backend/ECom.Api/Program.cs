@@ -17,6 +17,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.OpenApi.Models;
 using ECom.Api.Services.Orders;
 using ECom.Api.Services.Inventory;
+using ECom.Api.Controllers.Admin; // IUserDirectory için
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,8 +28,14 @@ builder.Services.AddControllers();
 /* ---------- Domain Services (In-Memory) ---------- */
 builder.Services.AddSingleton<IProductStore, InMemoryProductStore>();
 builder.Services.AddSingleton<ICartService, InMemoryCartService>();
-// Mevcut CRUD sipariş servisin
-builder.Services.AddSingleton<ECom.Api.Services.IOrderService, InMemoryOrderService>();
+builder.Services.AddSingleton<IOrderService, FirebaseOrderService>();
+
+// YENİ EKLENECEK SATIR BU:
+builder.Services.AddSingleton<IUserDirectory, FirebaseUserDirectory>();
+
+builder.Services.AddSingleton<IPaymentService, FakePaymentService>();
+// YENİ HALİ:
+builder.Services.AddSingleton<IOrderService, FirebaseOrderService>();
 builder.Services.AddSingleton<IPaymentService, FakePaymentService>();
 // Event logger — tam nitelikli
 builder.Services.AddSingleton<
@@ -71,15 +79,32 @@ builder.Services.AddSingleton(_ =>
     new FirestoreDbBuilder { ProjectId = projectId, Credential = adc }.Build());
 
 /* ---------- Auth ---------- */
-builder.Services.AddAuthentication("Firebase")
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = "Firebase";
+        options.DefaultChallengeScheme    = "Firebase";
+    })
     .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>("Firebase", _ => {});
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ProductsWrite", p => p.RequireClaim("role", "Admin", "Staff"));
-    options.AddPolicy("OrdersManage",  p => p.RequireClaim("role", "Admin", "Staff"));
-    options.AddPolicy("CartCheckout",  p => p.RequireClaim("role", "Customer"));
+    options.AddPolicy("UsersRead",   p => p.RequireRole("Admin", "Staff"));
+    options.AddPolicy("OrdersRead",  p => p.RequireRole("Admin", "Staff"));
+    options.AddPolicy("LogsRead",    p => p.RequireRole("Admin", "Staff"));
+    options.AddPolicy("UsersWrite",  p => p.RequireRole("Admin"));
+    options.AddPolicy("OrdersWrite", p => p.RequireRole("Admin", "Staff"));
+
+    // Ürün CRUD: Admin | Staff
+    options.AddPolicy("ProductsWrite", policy =>
+        policy.RequireAssertion(ctx =>
+            ctx.User.IsInRole("Admin") ||
+            ctx.User.IsInRole("Staff") ||
+            ctx.User.HasClaim("permissions", "products.write") ||
+            ctx.User.HasClaim("scope",        "products.write")
+        ));
 });
+
 
 /* ---------- CORS ---------- */
 var allowedFromConfig = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
@@ -99,6 +124,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ECom.Api", Version = "v1" });
+    c.CustomSchemaIds(t => t.FullName);
 
     var bearerScheme = new OpenApiSecurityScheme
     {
@@ -119,6 +145,15 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+
+app.MapPost("/api/debug/set-admin-role", async (string uid) =>
+{
+    await FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(uid,
+        new Dictionary<string, object> { ["role"] = "Admin" });
+
+    return Results.Ok(new { uid, role = "Admin" });
+});
+
 /* ---------- Admin bootstrap (ENV: ADMIN_EMAIL) ---------- */
 var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
 if (!string.IsNullOrWhiteSpace(adminEmail))
@@ -138,13 +173,15 @@ if (!string.IsNullOrWhiteSpace(adminEmail))
 }
 
 /* ---------- Pipeline ---------- */
-// Swagger en başta
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECom API v1");
-    c.RoutePrefix = "swagger";
-});
+    app.UseDeveloperExceptionPage(); // Hata detayını konsola yazsın
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECom API v1");
+    });
+}
 
 // app.UseHttpsRedirection(); // http kullanıyorsan kapalı kalsın
 app.UseMiddleware<CorrelationIdMiddleware>();
