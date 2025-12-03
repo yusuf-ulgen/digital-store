@@ -1,24 +1,25 @@
-// src/app/layout.tsx
 import "@/app/globals.css";
-import "@/styles/admin.css";
+
 import type { Metadata } from "next";
 import Providers from "./providers";
-import ClientShell from "@/components/ClientShell"; // yeni client kabuk
-import ChatWidget from "@/app/components/chat/ChatWidget";
+import ClientShell from "@/components/ClientShell"; 
+import ChatWidget from "@/components/chat/ChatWidget";
 
 export const metadata: Metadata = {
   title: "Ülgen Paslanmaz",
+  description: "Profesyonel Bıçak ve Mutfak Ekipmanları",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
-      <body className="bg-stone-50 text-stone-800">
+      <body className="bg-stone-50 text-stone-800 relative">
         <Providers>
-          {/* Sayfanın geri kalanı */}
+          {/* Sayfanın mevcut içeriği */}
           <ClientShell>{children}</ClientShell>
           
-          {/* 2. ChatWidget'ı BURAYA EKLE (ClientShell'in dışına, en alta) */}
+          {/* 2. ChatWidget'ı BURAYA EKLE (En alta, body kapanmadan hemen önce) */}
+          {/* Bu satır olmazsa buton asla görünmez! */}
           <ChatWidget />
           
         </Providers>
