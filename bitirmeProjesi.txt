@@ -3,10 +3,18 @@
 (+) 2) Görselleri düzenle ve sığdır
 (+) 3) Bıçakların sunum sayfası
 (+) 4) Asistanın büyütme köşesini sağ alttan sol üste çek
-(-) 4) Sahte veriler de admin panelde görünmeli ve admin panelden eklenen veriler de sayfada görünmeli
-(-) 5) Asistanın kullanıcıya otomatik mesaj gönderme işlemi (sayfaya girdikten 10 saniye sonra mesela)
-(-) 6) Asistan eğitimi (Sitedeki dataya erişim, onlar hakkında bilgi verebilme vs.)
-
+(+) 4) Sahte veriler de admin panelde görünmeli ve admin panelden eklenen veriler de sayfada görünmeli
+(+) 5) Asistanın kullanıcıya otomatik mesaj gönderme işlemi (sayfaya girdikten 10 saniye sonra mesela)
+(+) 6) Asistan eğitimi (Sitedeki dataya erişim, onlar hakkında bilgi verebilme vs.)
+					
+					DÜZENLEMELER
+(-) 1) Stoklar - girilmemeli
+(-) 2) Stoklardan fazla adet sepete eklenmemeli
+(-) 3) Userdaki ve prdodutsdaki hataları gider
+(-) 4) Yönetim panelinde görülen datalar productsda da görünmeli
+(-) 5) Orderstaki gereksiz verileri kaldır
+(-) 6) Ana sayfaya stoğu olmayan datalardan göndermesin
+(-) 7) Asistan eğitimi ( sayfalara da giriş yapabilsin )
 
 					
 					26  Aralıktaki Sunum
