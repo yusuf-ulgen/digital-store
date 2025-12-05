@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // useEffect eklendi
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
@@ -14,10 +14,8 @@ import {
   ChevronUpIcon
 } from "@heroicons/react/24/outline";
 import { useCart } from "@/lib/cart";
-// YENİ: Ortak veriyi import ediyoruz
 import { ALL_PRODUCTS } from "@/lib/mock-data"; 
 
-// --- AKORDEON BİLEŞENİ ---
 function AccordionItem({ title, isOpen, onClick, children }: { title: string, isOpen: boolean, onClick: () => void, children: React.ReactNode }) {
   return (
     <div className="border-b border-gray-200">
@@ -38,31 +36,40 @@ function AccordionItem({ title, isOpen, onClick, children }: { title: string, is
 }
 
 export default function ProductDetailPage() {
-  // useParams hook'u ile URL'deki id'yi alıyoruz (Next.js 13+ client component)
   const params = useParams();
   const id = params?.id as string;
-
-  // YENİ: Gerçek veriyi id'ye göre buluyoruz
   const product = ALL_PRODUCTS.find((p) => p.id === id);
 
-  const { add } = useCart();
+  // 'items' listesini de alıyoruz
+  const { add, items } = useCart();
 
-  // State'ler
   const [quantity, setQuantity] = useState(1);
   const [customName, setCustomName] = useState("");
   const [openSection, setOpenSection] = useState<string | null>("description");
 
-  // Ürün bulunamazsa 404 sayfasına yönlendir
-  if (!product) {
-    return notFound();
-  }
+  if (!product) return notFound();
 
-  // Stok kontrolü
+  // --- STOK MANTIĞI ---
   const stock = product.stock ?? 0;
-  const isOutOfStock = stock === 0;
+  
+  // Sepette şu an bu üründen kaç tane var?
+  const cartItem = items.find(i => i.id === product.id);
+  const qtyInCart = cartItem ? cartItem.qty : 0;
 
+  // Kullanıcının şu an ekleyebileceği maksimum adet (Stok - Sepetteki)
+  const remainingStock = Math.max(0, stock - qtyInCart);
+  
+  // Hiç stok yok mu? (Genel stok 0 ise VEYA kalan hak 0 ise)
+  const isOutOfStock = stock === 0;
+  const isMaxedOut = remainingStock === 0; // Sepet dolu
+
+  // Miktar değiştiğinde kontrol (Kalan stoktan fazlasını seçtirme)
   const handleQuantityChange = (delta: number) => {
-    setQuantity(prev => Math.max(1, Math.min(prev + delta, stock))); // Stoktan fazlasını seçtirme
+    setQuantity(prev => {
+        const newValue = prev + delta;
+        // 1'den küçük olamaz, kalan stoktan büyük olamaz
+        return Math.max(1, Math.min(newValue, remainingStock));
+    });
   };
 
   const toggleSection = (section: string) => {
@@ -70,8 +77,15 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    if (isOutOfStock) return;
+    if (isOutOfStock || isMaxedOut) return;
     
+    // Güvenlik kontrolü: Seçilen miktar kalandan fazlaysa uyarı ver
+    if (quantity > remainingStock) {
+        alert(`Stokta sadece ${remainingStock} adet daha ürün kaldı.`);
+        setQuantity(remainingStock); // Miktarı düzel
+        return;
+    }
+
     add({
       id: product.id,
       title: product.title,
@@ -79,14 +93,19 @@ export default function ProductDetailPage() {
       imageUrl: product.imageUrl || "",
     }, quantity);
     
+    // Ekleme sonrası miktar 1'e dönsün ama eğer stok dolduysa buton pasif olacak
+    setQuantity(1);
+    
     alert(`${quantity} adet ${product.title} sepete eklendi!`);
   };
+
+  // Kalan stok 0 ise miktarı 1 yerine 0 veya pasif göstermek için
+  const displayQuantity = isMaxedOut ? 0 : quantity;
 
   return (
     <div className="bg-white min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         
-        {/* Breadcrumb */}
         <nav className="flex mb-8 text-sm text-gray-500">
           <Link href="/" className="hover:text-gray-900">Ana Sayfa</Link>
           <span className="mx-2">/</span>
@@ -99,7 +118,7 @@ export default function ProductDetailPage() {
 
         <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
           
-          {/* SOL TARA: Ürün Görseli */}
+          {/* Görsel */}
           <div className="product-image-container relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100 border border-gray-200">
             <Image
               src={product.imageUrl || "/placeholder.png"}
@@ -117,13 +136,12 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* SAĞ TARAF: Ürün Detayları */}
+          {/* Detaylar */}
           <div className="mt-8 lg:mt-0">
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{product.title}</h1>
             
             <div className="mt-4 prose prose-sm text-gray-500">
               <p>
-                {/* Veride açıklama olmadığı için dinamik başlık ve standart metin kullanıyoruz */}
                 {product.title}, mutfağınızdaki en büyük yardımcınız olmaya aday. 
                 Ülgen Paslanmaz kalitesiyle üretilmiştir.
               </p>
@@ -135,7 +153,7 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            {/* İsim Yazdırma Alanı */}
+            {/* İsim Yazdırma */}
             <div className="mt-8">
               <label htmlFor="custom-name" className="block text-sm font-medium text-gray-700">
                 Bıçak Üzerine Yazılacak İsim (Opsiyonel)
@@ -146,14 +164,14 @@ export default function ProductDetailPage() {
                   id="custom-name"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || isMaxedOut}
                   className="block w-full rounded-md border-gray-300 py-3 px-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border disabled:bg-gray-100 disabled:text-gray-400"
                   placeholder="İsim yazınız..."
                 />
               </div>
             </div>
 
-            {/* Miktar ve Sepete Ekle */}
+            {/* Miktar ve Buton */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <div className="flex items-center">
                 <span className="mr-3 text-sm font-medium text-gray-700">Miktar:</span>
@@ -161,17 +179,19 @@ export default function ProductDetailPage() {
                   <button 
                     onClick={() => handleQuantityChange(-1)}
                     className="p-3 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                    disabled={quantity <= 1 || isOutOfStock}
+                    // 1'den aşağı inmesin VEYA stok tamamen bittiyse VEYA sepette limit dolduysa basılmasın
+                    disabled={displayQuantity <= 1 || isOutOfStock || isMaxedOut}
                   >
                     <MinusIcon className="h-4 w-4" />
                   </button>
                   <span className="px-4 py-2 text-gray-900 font-medium w-12 text-center">
-                    {quantity}
+                    {displayQuantity}
                   </span>
                   <button 
                     onClick={() => handleQuantityChange(1)}
                     className="p-3 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                    disabled={quantity >= stock || isOutOfStock}
+                    // Seçilen miktar kalan stoğa ulaştıysa basılmasın
+                    disabled={displayQuantity >= remainingStock || isOutOfStock || isMaxedOut}
                   >
                     <PlusIcon className="h-4 w-4" />
                   </button>
@@ -181,16 +201,26 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || isMaxedOut}
                 className={`flex-1 flex items-center justify-center rounded-md border border-transparent px-8 py-3 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 transition-colors
-                  ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' : 'bg-stone-900 hover:bg-stone-800'}
+                  ${(isOutOfStock || isMaxedOut) ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' : 'bg-stone-900 hover:bg-stone-800'}
                 `}
               >
-                {isOutOfStock ? 'STOKTA YOK' : 'SEPETE EKLE'}
+                {isOutOfStock 
+                  ? 'STOKTA YOK' 
+                  : isMaxedOut 
+                    ? 'STOK LİMİTİ DOLDU' 
+                    : 'SEPETE EKLE'}
               </button>
             </div>
+            
+            {/* Kalan stok bilgisi (Opsiyonel ama kullanıcı dostu) */}
+            {!isOutOfStock && remainingStock < 5 && remainingStock > 0 && (
+                <p className="mt-2 text-sm text-red-600 font-medium">
+                    Son {remainingStock} ürün kaldı!
+                </p>
+            )}
 
-            {/* Güvenceler */}
             <div className="mt-8 space-y-4 border-t border-gray-200 pt-8">
               <div className="flex items-center gap-3">
                 <TruckIcon className="h-6 w-6 text-gray-600 flex-shrink-0" />
@@ -206,7 +236,6 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Akordeonlar (Generic Bilgiler) */}
             <div className="mt-8 border-t border-gray-200">
               <AccordionItem 
                 title="Ürün Açıklaması" 

@@ -1,72 +1,89 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/admin/DataTable";
-import { listUsers, type AppUser, type UserListParams } from "@/lib/api/users";
-import { getDecodedToken, extractRole } from "@/lib/auth";
+import { db, auth } from "@/lib/firebase";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+
+// Veri Tipi
+type AppUser = {
+  id: string;
+  email: string;
+  displayName?: string;
+  role?: "Admin" | "Staff" | "Customer";
+  createdAt?: any;
+  lastLoginAt?: any;
+};
 
 type RoleOpt = "All" | "Admin" | "Staff" | "Customer";
 
 export default function UsersPage() {
-  // filtre / sayfalama
+  const [allUsers, setAllUsers] = useState<AppUser[]>([]);
+  const [rows, setRows] = useState<AppUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Filtreler
   const [q, setQ] = useState("");
   const [role, setRole] = useState<RoleOpt>("All");
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // liste state
-  const [rows, setRows] = useState<AppUser[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
+  // Şu anki kullanıcı admin mi? (Basit kontrol)
+  const [isAdmin, setIsAdmin] = useState(true); // Şimdilik true, auth logic'e göre değişebilir
 
-  // current user role (buton görünürlüğü için)
-  const [isAdmin, setIsAdmin] = useState(false);
-
+  // 1. Verileri Firestore'dan Çek
   useEffect(() => {
-    (async () => {
-      const dt = await getDecodedToken();
-      const r = extractRole(dt);
-      setIsAdmin(r === "Admin");
-    })();
+    async function fetchUsers() {
+      setLoading(true);
+      try {
+        // 'users' koleksiyonunu çekiyoruz.
+        // NOT: Eğer bu koleksiyon yoksa boş dizi döner.
+        const usersRef = collection(db, "users");
+        // Hata almamak için orderBy'ı opsiyonel yapabiliriz veya index oluşturmak gerekebilir.
+        const qSnap = await getDocs(query(usersRef)); 
+        
+        const items = qSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as AppUser[];
+
+        setAllUsers(items);
+      } catch (err) {
+        console.error("Kullanıcılar çekilemedi:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUsers();
   }, []);
 
-  const params: UserListParams = useMemo(
-    () => ({
-      q: q || undefined,
-      role: role === "All" ? undefined : role,
-      page,
-      pageSize,
-    }),
-    [q, role, page, pageSize]
-  );
-
-  const reload = async () => {
-    setLoading(true);
-    setErr(null);
-    try {
-      const res = await listUsers(params);
-      setRows(res.items);
-      setTotal(res.total);
-    } catch (e: any) {
-      setErr(String(e?.message ?? e));
-      setRows([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 2. Filtreleme ve Sayfalama
   useEffect(() => {
-    reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params]);
+    let filtered = allUsers;
+
+    // Email araması
+    if (q.trim()) {
+      filtered = filtered.filter(u => u.email?.toLowerCase().includes(q.toLowerCase()));
+    }
+
+    // Rol filtresi
+    if (role !== "All") {
+      filtered = filtered.filter(u => u.role === role);
+    }
+
+    // Sayfalama
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    setRows(filtered.slice(start, end));
+
+  }, [allUsers, q, role, page]);
+
 
   return (
     <div className="space-y-4">
       {/* Başlık + filtreler */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold">Users</h2>
+        <h2 className="text-lg font-semibold">Kullanıcılar ({allUsers.length})</h2>
         <div className="flex items-end gap-2">
           <div className="flex flex-col">
             <label className="text-xs text-stone-500 mb-1">Email ara</label>
@@ -99,16 +116,6 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {err && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-          {err.includes("401") || err.toLowerCase().includes("unauthorized")
-            ? "Yetkisiz: Lütfen tekrar giriş yap."
-            : err.includes("403")
-            ? "Erişim reddedildi."
-            : `Hata: ${err}`}
-        </div>
-      )}
-
       {loading ? (
         <div className="rounded-2xl border border-stone-200 bg-white p-6 text-sm text-stone-500">
           Yükleniyor…
@@ -132,25 +139,19 @@ export default function UsersPage() {
               header: "Rol",
               className: "w-[120px]",
               render: (r) => {
-                const role = r.role ?? "Customer";
+                const userRole = r.role ?? "Customer";
                 const cls =
-                  role === "Admin"
+                  userRole === "Admin"
                     ? "bg-purple-100 text-purple-800"
-                    : role === "Staff"
+                    : userRole === "Staff"
                     ? "bg-blue-100 text-blue-800"
                     : "bg-stone-200 text-stone-800";
                 return (
                   <span className={`rounded-full px-2 py-0.5 text-xs ${cls}`}>
-                    {role}
+                    {userRole}
                   </span>
                 );
               },
-            },
-            {
-              key: "ordersCount",
-              header: "Sipariş",
-              className: "text-right w-[90px]",
-              render: (r) => (r.ordersCount ?? 0).toLocaleString(),
             },
             {
               key: "lastLoginAt",
@@ -158,7 +159,7 @@ export default function UsersPage() {
               className: "w-[180px]",
               render: (r) =>
                 r.lastLoginAt
-                  ? new Date(r.lastLoginAt).toLocaleString()
+                  ? new Date(r.lastLoginAt?.seconds * 1000 || r.lastLoginAt).toLocaleDateString()
                   : "-",
             },
             {
@@ -166,7 +167,9 @@ export default function UsersPage() {
               header: "Kayıt",
               className: "w-[180px]",
               render: (r) =>
-                r.createdAt ? new Date(r.createdAt).toLocaleString() : "-",
+                r.createdAt 
+                  ? new Date(r.createdAt?.seconds * 1000 || r.createdAt).toLocaleDateString() 
+                  : "-",
             },
             {
               key: "actions",
@@ -177,10 +180,7 @@ export default function UsersPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      alert(
-                        `Rol değiştirme endpoint'i şu an hazır değil.\n` +
-                          `Kullanıcı: ${r.email}\nMevcut rol: ${r.role ?? "Customer"}`
-                      );
+                      alert(`Rol değiştirme henüz aktif değil.\nKullanıcı: ${r.email}`);
                     }}
                     className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm hover:bg-stone-50"
                   >
@@ -196,10 +196,10 @@ export default function UsersPage() {
           pagination={{
             page,
             pageSize,
-            total,
+            total: allUsers.length,
             onPageChange: setPage,
           }}
-          emptyText="Kullanıcı bulunamadı"
+          emptyText="Kullanıcı bulunamadı (Firestore 'users' koleksiyonu boş olabilir)"
         />
       )}
     </div>

@@ -27,21 +27,53 @@ export default function CartPage() {
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
         {/* Liste */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {items.map((it) => (
-            <div key={it.id} style={{ display: "grid", gridTemplateColumns: "96px 1fr 140px 120px", gap: 12, alignItems: "center", border: "1px solid #e7e5e4", borderRadius: 14, padding: 12 }}>
-              <Image src={it.imageUrl} alt={it.title} width={96} height={96} style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 10 }} />
-              <div>
-                <div style={{ fontWeight: 600 }}>{it.title}</div>
-                <button onClick={() => remove(it.id)} style={{ marginTop: 6, border: "none", background: "transparent", color: "#ef4444", cursor: "pointer" }}>Kaldır</button>
+          {items.map((it) => {
+            // --- STOK KONTROL MANTIĞI ---
+            // Stok bilgisi gelmezse varsayılan olarak yüksek bir limit (999) koyuyoruz ki hata vermesin.
+            const stock = it.stock ?? 999; 
+            const isMaxed = it.qty >= stock;
+
+            return (
+              <div key={it.id} style={{ display: "grid", gridTemplateColumns: "96px 1fr 140px 120px", gap: 12, alignItems: "center", border: "1px solid #e7e5e4", borderRadius: 14, padding: 12 }}>
+                <Image src={it.imageUrl} alt={it.title} width={96} height={96} style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 10 }} />
+                <div>
+                  <div style={{ fontWeight: 600 }}>{it.title}</div>
+                  {/* Stok uyarısı (Opsiyonel: Sadece limit dolduğunda görünür) */}
+                  {isMaxed && <div style={{ fontSize: 12, color: "#dc2626", marginTop: 4 }}>Maksimum stok limiti</div>}
+                  <button onClick={() => remove(it.id)} style={{ marginTop: 6, border: "none", background: "transparent", color: "#ef4444", cursor: "pointer" }}>Kaldır</button>
+                </div>
+                <div style={{ fontWeight: 600 }}>{tl(it.price)}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button onClick={() => setQty(it.id, Math.max(0, it.qty - 1))} style={btnQty}>−</button>
+                  
+                  <input 
+                    value={it.qty} 
+                    // Input ile elle giriş yapılırsa da stok kontrolü yapalım
+                    onChange={(e) => {
+                        const val = parseInt(e.target.value || "0") || 0;
+                        setQty(it.id, Math.max(0, Math.min(val, stock))); 
+                    }} 
+                    style={qtyInput} 
+                  />
+                  
+                  {/* PLUS BUTONU GÜNCELLEMESİ */}
+                  <button 
+                    onClick={() => setQty(it.id, it.qty + 1)} 
+                    disabled={isMaxed} // Limit dolduysa tıklanamaz
+                    style={{
+                        ...btnQty,
+                        // Pasifse şeffaflaştır ve cursor'ı değiştir
+                        opacity: isMaxed ? 0.4 : 1,
+                        cursor: isMaxed ? "not-allowed" : "pointer",
+                        background: isMaxed ? "#f3f4f6" : "#fff" 
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-              <div style={{ fontWeight: 600 }}>{tl(it.price)}</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button onClick={() => setQty(it.id, Math.max(0, it.qty - 1))} style={btnQty}>−</button>
-                <input value={it.qty} onChange={(e) => setQty(it.id, Math.max(0, parseInt(e.target.value || "0") || 0))} style={qtyInput} />
-                <button onClick={() => setQty(it.id, it.qty + 1)} style={btnQty}>+</button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Özet */}

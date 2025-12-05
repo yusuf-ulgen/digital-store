@@ -7,12 +7,14 @@ export type CartItem = {
   price: number;
   imageUrl: string;
   qty: number;
+  stock?: number; // YENİ: Stok bilgisini ekledik
 };
 
 type CartContextType = {
   items: CartItem[];
-  count: number;            // toplam adet
-  total: number;            // TL toplam
+  count: number;
+  total: number;
+  // add fonksiyonuna stock parametresini de ekliyoruz
   add: (p: Omit<CartItem, "qty">, qty?: number) => void;
   setQty: (id: string, qty: number) => void;
   remove: (id: string) => void;
@@ -41,12 +43,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setItems((prev) => {
         const i = prev.findIndex(x => x.id === p.id);
         if (i >= 0) {
-          const copy = [...prev]; copy[i] = { ...copy[i], qty: copy[i].qty + qty }; return copy;
+          // Eğer ürün zaten varsa, stoğu güncelle (belki değişmiştir) ve adedi artır
+          const copy = [...prev];
+          // Yeni stok bilgisi varsa güncelle, yoksa eskisi kalsın
+          const currentStock = p.stock !== undefined ? p.stock : copy[i].stock;
+          
+          // GÜVENLİK: Eğer (mevcut + eklenecek) > stok ise ekleme!
+          if (currentStock !== undefined && (copy[i].qty + qty) > currentStock) {
+             alert(`Stok yetersiz! En fazla ${currentStock} adet alabilirsiniz.`);
+             return prev; // Değişiklik yapmadan dön
+          }
+
+          copy[i] = { ...copy[i], qty: copy[i].qty + qty, stock: currentStock }; 
+          return copy;
+        }
+        // Yeni ürün eklerken de stok kontrolü (genelde 1 tane eklenir ama yine de)
+        if (p.stock !== undefined && qty > p.stock) {
+            alert(`Stok yetersiz!`);
+            return prev;
         }
         return [...prev, { ...p, qty }];
       });
     },
-    setQty: (id, qty) => setItems(prev => prev.map(x => x.id === id ? { ...x, qty } : x).filter(x => x.qty > 0)),
+    setQty: (id, qty) => setItems(prev => prev.map(x => {
+        if (x.id === id) {
+            // GÜVENLİK: Elle sayı girilirse veya + butonuna basılırsa kontrol et
+            if (x.stock !== undefined && qty > x.stock) {
+                alert(`Stok yetersiz! Maksimum ${x.stock} adet.`);
+                return x; // Değişiklik yapma
+            }
+            return { ...x, qty };
+        }
+        return x;
+    }).filter(x => x.qty > 0)),
     remove: (id) => setItems(prev => prev.filter(x => x.id !== id)),
     clear: () => setItems([]),
   }), [items]);
@@ -63,15 +92,10 @@ export function useCart() {
 export const tl = (n: number) =>
   new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 2 }).format(n);
 
-
 const KEY = "cartId";
-
 export function ensureCartId(): string {
   let id = localStorage.getItem(KEY);
   if (!id) { id = crypto.randomUUID().replaceAll("-", ""); localStorage.setItem(KEY, id); }
   return id;
 }
-
-export function cartHeaders() {
-  return { "X-Cart-Id": ensureCartId() };
-}
+export function cartHeaders() { return { "X-Cart-Id": ensureCartId() }; }

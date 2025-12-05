@@ -1,255 +1,183 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
-import Timeline, { type TimelineItem } from "@/components/admin/Timeline";
 import StatusBadge from "@/components/admin/StatusBadge";
-import { getOrder, changeOrderStatus, type Order } from "@/lib/api/orders";
+// Firebase
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 
-// UI tarafında öneri butonları için hafif yardımcı (asıl doğrulama backend'de)
-const FORWARD_TRANSITIONS: Record<string, string[]> = {
-  Created: ["Paid", "Canceled"],
-  Paid: ["Packed", "Refunded"],
-  Packed: ["Shipped"],
-  Shipped: ["Delivered", "Refunded"],
-  Delivered: ["Refunded"],
-  Refunded: [],
-  Canceled: [],
+// Veri Tipi
+type OrderDetail = {
+  id: string;
+  userId?: string;
+  customerEmail?: string;
+  total?: number;
+  status?: string;
+  items?: any[];
+  createdAt?: any;
+  paymentMethod?: string;
+  history?: any[]; // Geçmiş olaylar
 };
 
+const STATUS_OPTIONS = ["Created", "Paid", "Packed", "Shipped", "Delivered", "Canceled", "Refunded"];
+
 export default function OrderDetailPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams();
   const router = useRouter();
-  const orderId = params?.id;
+  const orderId = params?.id as string;
 
-  const [order, setOrder] = useState<Order | null>(null);
-  const [events, setEvents] = useState<TimelineItem[]>([]);
+  const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-
+  
+  // Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [targetStatus, setTargetStatus] = useState<string | null>(null);
-  const [reason, setReason] = useState<string>("");
-  const [acting, setActing] = useState(false);
-  const [actionErr, setActionErr] = useState<string | null>(null);
+  const [targetStatus, setTargetStatus] = useState("");
+  const [updating, setUpdating] = useState(false);
 
-  const reload = async () => {
-    if (!orderId) return;
-    setLoading(true);
-    setErr(null);
-    try {
-      const o = await getOrder(orderId);
-      setOrder(o);
-
-      // API detayında event'ler varsa timeline'a koy (ad: events, history, logs…)
-      const timelineRaw: any[] =
-        (o as any)?.events ||
-        (o as any)?.history ||
-        (o as any)?.logs ||
-        [];
-
-      const mapped: TimelineItem[] = timelineRaw.map((ev) => ({
-        id: ev.id,
-        type: ev.type ?? ev.eventType ?? "Event",
-        message: ev.message,
-        from: ev.from ?? ev.oldStatus ?? null,
-        to: ev.to ?? ev.newStatus ?? null,
-        createdAt: ev.createdAt ?? ev.timestamp ?? new Date().toISOString(),
-        userId: ev.userId,
-      }));
-      setEvents(mapped);
-    } catch (e: any) {
-      setErr(String(e?.message ?? e));
-      setOrder(null);
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 1. Veriyi Çek
   useEffect(() => {
-    reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!orderId) return;
+    
+    async function fetchOrder() {
+        setLoading(true);
+        try {
+            const docRef = doc(db, "orders", orderId);
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+                setOrder({ id: docSnap.id, ...docSnap.data() } as OrderDetail);
+            } else {
+                setOrder(null);
+            }
+        } catch (e) {
+            console.error("Hata:", e);
+        } finally {
+            setLoading(false);
+        }
+    }
+    fetchOrder();
   }, [orderId]);
 
-  const nextStatuses = useMemo(() => {
-    if (!order?.status) return [];
-    return FORWARD_TRANSITIONS[order.status] ?? [];
-  }, [order?.status]);
-
-  const openConfirm = (to: string) => {
-    setTargetStatus(to);
-    setActionErr(null);
-    setReason("");
-    setConfirmOpen(true);
-  };
-
-  const doChange = async () => {
-    if (!orderId || !targetStatus) return;
-    setActing(true);
-    setActionErr(null);
+  // 2. Durum Güncelleme
+  const handleStatusChange = async () => {
+    if (!order || !targetStatus) return;
+    setUpdating(true);
+    
     try {
-      await changeOrderStatus(orderId, { to: targetStatus as any, reason: reason || undefined });
-      setConfirmOpen(false);
-      await reload(); // başarılı → yeniden yükle
-    } catch (e: any) {
-      const msg = String(e?.message ?? e);
-      // 409 özel mesaj
-      if (msg.includes("409")) {
-        setActionErr("Geçersiz durum geçişi (409). Lütfen akışı kontrol et.");
-      } else if (msg.includes("401")) {
-        setActionErr("Yetkisiz (401). Lütfen tekrar giriş yap.");
-      } else if (msg.includes("403")) {
-        setActionErr("Erişim reddedildi (403).");
-      } else {
-        setActionErr(`Hata: ${msg}`);
-      }
+        const orderRef = doc(db, "orders", order.id);
+        
+        // Yeni durumu ve tarihçeyi kaydet
+        await updateDoc(orderRef, {
+            status: targetStatus,
+            history: arrayUnion({
+                status: targetStatus,
+                changedAt: new Date().toISOString(),
+                note: "Admin tarafından güncellendi"
+            })
+        });
+        
+        // UI güncelle
+        setOrder(prev => prev ? ({ ...prev, status: targetStatus }) : null);
+        setConfirmOpen(false);
+    } catch (e) {
+        alert("Güncelleme başarısız!");
+        console.error(e);
     } finally {
-      setActing(false);
+        setUpdating(false);
     }
   };
 
-  if (loading) {
-    return <div className="rounded-2xl border border-stone-200 bg-white p-6 text-sm text-stone-500">Yükleniyor…</div>;
-  }
-
-  if (err || !order) {
-    return (
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 text-sm">
-        <div className="text-rose-700">{err ?? "Sipariş bulunamadı."}</div>
-        <button
-          onClick={() => router.back()}
-          className="mt-3 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm"
-        >
-          Geri
-        </button>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-6">Yükleniyor...</div>;
+  if (!order) return <div className="p-6">Sipariş bulunamadı.</div>;
 
   return (
-    <div className="space-y-4">
-      {/* Üst başlık */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Başlık ve Durum Butonları */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Order #{order.id}</h2>
-          <div className="text-sm text-stone-600">
-            {order.customerEmail ?? order.userId} ·{" "}
-            {order.createdAt
-              ? new Date(order.createdAt).toLocaleString()
-              : "-"}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={order.status} />
-          {nextStatuses.length > 0 && (
-            <div className="ms-2">
-              <span className="mr-2 text-sm text-stone-600">Durumu değiştir:</span>
-              {nextStatuses.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => openConfirm(s)}
-                  className="mr-2 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm hover:bg-stone-50"
-                >
-                  {s}
-                </button>
-              ))}
+            <h2 className="text-xl font-bold">Sipariş #{order.id}</h2>
+            <div className="text-sm text-gray-500">
+                {order.createdAt?.seconds 
+                    ? new Date(order.createdAt.seconds * 1000).toLocaleString() 
+                    : "Tarih yok"}
             </div>
-          )}
+        </div>
+        
+        <div className="flex items-center gap-3">
+            <StatusBadge status={order.status || "Unknown"} />
+            
+            <select 
+                className="border rounded p-2 text-sm"
+                value=""
+                onChange={(e) => {
+                    setTargetStatus(e.target.value);
+                    setConfirmOpen(true);
+                }}
+            >
+                <option value="" disabled>Durumu Değiştir...</option>
+                {STATUS_OPTIONS.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                ))}
+            </select>
         </div>
       </div>
 
-      {/* Kartlar */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Sol: Genel Bilgiler */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 lg:col-span-2">
-          <h3 className="mb-3 text-sm font-medium text-stone-700">Sipariş Özeti</h3>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <div className="text-stone-500">Müşteri</div>
-              <div className="text-stone-800">{order.customerEmail ?? order.userId}</div>
+      {/* Detay Kartları */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Sol: Müşteri ve Ödeme */}
+        <div className="border rounded-xl p-4 bg-white shadow-sm">
+            <h3 className="font-semibold mb-3 border-b pb-2">Müşteri Bilgileri</h3>
+            <div className="grid grid-cols-2 gap-y-2 text-sm">
+                <span className="text-gray-500">Email:</span>
+                <span>{order.customerEmail || order.userId || "-"}</span>
+                
+                <span className="text-gray-500">Ödeme Yöntemi:</span>
+                <span>{order.paymentMethod || "Kredi Kartı"}</span>
+                
+                <span className="text-gray-500">Toplam Tutar:</span>
+                <span className="font-bold">{(order.total ?? 0).toLocaleString()} ₺</span>
             </div>
-            <div>
-              <div className="text-stone-500">Toplam</div>
-              <div className="text-stone-800">{(order.total ?? 0).toLocaleString()} ₺</div>
-            </div>
-            <div>
-              <div className="text-stone-500">Ödeme</div>
-              <div className="text-stone-800">{order.paymentMethod ?? "-"}</div>
-            </div>
-            <div>
-              <div className="text-stone-500">Takip Kodu</div>
-              <div className="text-stone-800">{order.trackingCode ?? "-"}</div>
-            </div>
-          </div>
+        </div>
 
-          {/* Items */}
-          {!!order.items?.length && (
-            <>
-              <div className="mt-5 text-sm font-medium text-stone-700">Ürünler</div>
-              <div className="mt-2 overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-stone-50 text-stone-600">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Ürün</th>
-                      <th className="px-3 py-2 text-right">Adet</th>
-                      <th className="px-3 py-2 text-right">Fiyat</th>
-                      <th className="px-3 py-2 text-right">Tutar</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {order.items.map((it, i) => (
-                      <tr key={i} className="border-t border-stone-100">
-                        <td className="px-3 py-2">{it.title ?? it.productId}</td>
-                        <td className="px-3 py-2 text-right">{it.qty}</td>
-                        <td className="px-3 py-2 text-right">{(it.price ?? 0).toLocaleString()} ₺</td>
-                        <td className="px-3 py-2 text-right">
-                          {((it.price ?? 0) * (it.qty ?? 0)).toLocaleString()} ₺
-                        </td>
-                      </tr>
+        {/* Sağ: Ürünler */}
+        <div className="border rounded-xl p-4 bg-white shadow-sm">
+            <h3 className="font-semibold mb-3 border-b pb-2">Sipariş İçeriği</h3>
+            {order.items && order.items.length > 0 ? (
+                <ul className="space-y-3">
+                    {order.items.map((item, idx) => (
+                        <li key={idx} className="flex justify-between text-sm">
+                            <span>
+                                <span className="font-medium">{item.qty}x</span> {item.title}
+                            </span>
+                            <span>{(item.price * item.qty).toLocaleString()} ₺</span>
+                        </li>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Sağ: Timeline */}
-        <div>
-          <h3 className="mb-3 text-sm font-medium text-stone-700">Olay Geçmişi</h3>
-          <Timeline items={events} />
+                </ul>
+            ) : (
+                <div className="text-gray-400 text-sm">Ürün bilgisi yok.</div>
+            )}
         </div>
       </div>
 
-      {/* Confirm Dialog */}
+      <button 
+        onClick={() => router.back()}
+        className="text-sm text-gray-500 hover:text-gray-800 underline"
+      >
+        &larr; Listeye Dön
+      </button>
+
+      {/* Onay Modalı */}
       <ConfirmDialog
         open={confirmOpen}
-        title="Durum değiştir"
-        description={
-          targetStatus
-            ? `Siparişi "${targetStatus}" durumuna geçirmek istediğine emin misin?`
-            : undefined
-        }
-        confirmText="Evet, değiştir"
-        onConfirm={doChange}
+        title="Durum Güncelle"
+        description={`Sipariş durumunu "${targetStatus}" olarak değiştirmek istiyor musunuz?`}
+        confirmText="Evet, Güncelle"
+        onConfirm={handleStatusChange}
         onClose={() => setConfirmOpen(false)}
-        loading={acting}
-      >
-        <label className="block text-sm text-stone-600">Not (opsiyonel)</label>
-        <input
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-stone-500"
-          placeholder="Kısa bir açıklama gir…"
-        />
-        {actionErr && (
-          <div className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-            {actionErr}
-          </div>
-        )}
-      </ConfirmDialog>
+        loading={updating}
+      />
     </div>
   );
 }

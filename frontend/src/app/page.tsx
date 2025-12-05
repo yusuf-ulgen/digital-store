@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 // Firebase importları
 import { db } from "@/lib/firebase"; 
-import { collection, getDocs, query, limit, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 // Tip ve Bileşen
 import ProductCard from "@/components/ProductCard";
 import type { LocalProduct } from "@/lib/mock-data";
@@ -13,25 +13,26 @@ export default function Home() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Veritabanından Rastgele/Son Eklenen Ürünleri Çek
+  // Veritabanından Stokta Olan Rastgele Ürünleri Çek
   useEffect(() => {
     async function fetchProducts() {
       try {
-        // 'products' koleksiyonundan veri çek
+        // Tüm ürünleri tarihe göre çekiyoruz
         const productsRef = collection(db, "products");
-        // Örnek: Son eklenen 20 ürünü çekip içinden rastgele 12 seçelim
-        const q = query(productsRef, orderBy("createdAt", "desc"), limit(20));
+        const q = query(productsRef, orderBy("createdAt", "desc"));
         
         const querySnapshot = await getDocs(q);
         
         const allItems: LocalProduct[] = [];
         querySnapshot.forEach((doc) => {
-          // Firestore verisini LocalProduct tipine uyduruyoruz
           allItems.push({ id: doc.id, ...doc.data() } as LocalProduct);
         });
 
-        // Rastgele karıştır ve 12 tane al
-        const random12 = allItems.sort(() => 0.5 - Math.random()).slice(0, 12);
+        // 1. ADIM: Sadece stoğu 0'dan büyük olanları filtrele
+        const inStockItems = allItems.filter(p => (p.stock ?? 0) > 0);
+
+        // 2. ADIM: Kalanları rastgele karıştır ve ilk 12 tanesini al
+        const random12 = inStockItems.sort(() => 0.5 - Math.random()).slice(0, 12);
         
         setProducts(random12);
       } catch (error) {
@@ -78,7 +79,7 @@ export default function Home() {
 
         {!loading && products.length === 0 && (
           <div className="py-20 text-center text-gray-500">
-             Veritabanında ürün bulunamadı. Admin panelinden yükleme yapınız.
+             Şu an stokta ürün bulunmamaktadır.
           </div>
         )}
       </section>

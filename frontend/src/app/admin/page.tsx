@@ -149,8 +149,8 @@ export default function AdminPage() {
                  value={form.imageUrl} onChange={e=>setForm(s=>({...s,imageUrl:e.target.value}))}/>
           <input className="border rounded px-2 py-2" placeholder="Fiyat" type="number"
                  value={form.price} onChange={e=>setForm(s=>({...s,price:e.target.value}))}/>
-          <input className="border rounded px-2 py-2" placeholder="Stok" type="number"
-                 value={form.stock} onChange={e=>setForm(s=>({...s,stock:e.target.value}))}/>
+          <input className="border rounded px-2 py-2"placeholder="Stok"type="number"min="0"
+                 value={form.stock} onChange={(e) => { const val = e.target.value;if (Number(val) < 0) return; setForm((s) => ({ ...s, stock: val }));}}/>
         </div>
         <button
           onClick={addProduct}
