@@ -15,10 +15,11 @@
 (+) 5) Orderstaki gereksiz verileri kaldır
 (+) 6) Ana sayfaya stoğu olmayan datalardan göndermesin
 (+) 7) Çıkış yap giriş yap hatası
-(-) 8) Asistan eğitimi ( sayfalara da giriş yapabilsin )
-(-) 9) Ürünü düzenleme kısmını düzenle
-(-) 10) Admin panelde asistan açılmayacak
-(-) 11) Admin panel yazısına basılınca main admine dönecek
+(+) 8) Ürünü düzenleme kısmını düzenle(admin panel)
+(+) 9) Admin panelde asistan açılmayacak
+(+) 10) Admin panel hatasını düzelt
+(+) 11) Admin panel yazısına basılınca main admine dönecek
+(-) 12) Asistan eğitimi (sayfalara da giriş yapabilsin)
 (-) X) Footerdaki tıklanabilir özellikleri kullanılabilir yap
 
 					

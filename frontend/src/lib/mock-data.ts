@@ -3,9 +3,15 @@ import type { Product } from "@/lib/api/products-admin";
 // LocalProduct tipini buraya da taşıyalım veya import edelim
 export type LocalProduct = Product & {
   soldCount?: number;
+  shortDescription?: string; // Fiyatın üstündeki kısa açıklama
+  features?: string[];       // Madde madde özellikler (Array)
+  longDescription?: string;  // Ürün Açıklaması (Accordion içi)
+  usage?: string;            // Kullanım Talimatı
+  care?: string;             // Temizleme Talimatı
 };
 
-// Yardımcı fonksiyon
+// 2. YARDIMCI FONKSİYONU GÜNCELLİYORUZ
+// (Eski verilerin bozulmaması için varsayılan değerler atıyoruz)
 const fakeProduct = (
   id: string,
   category: string,
@@ -13,7 +19,15 @@ const fakeProduct = (
   price: number,
   stock: number,
   imageFileName?: string,
-  soldCount: number = 0
+  soldCount: number = 0,
+  // Yeni parametreleri opsiyonel olarak ekleyelim
+  customData?: {
+    shortDescription?: string;
+    features?: string[];
+    longDescription?: string;
+    usage?: string;
+    care?: string;
+  }
 ): LocalProduct => ({
   id,
   title,
@@ -26,12 +40,41 @@ const fakeProduct = (
   active: stock > 0,
   createdAt: new Date().toISOString(),
   soldCount,
+  
+  // Varsayılan (Placeholder) Metinler
+  // Sen veriyi girene kadar boş görünmemesi için bunları varsayılan yapıyoruz.
+  shortDescription: customData?.shortDescription || `${title}, mutfağınızdaki en büyük yardımcınız olmaya aday. Ülgen Paslanmaz kalitesiyle üretilmiştir.`,
+  
+  features: customData?.features || [
+    "Profesyonel el işçiliği",
+    "Yüksek karbonlu paslanmaz çelik",
+    "Ergonomik sap tasarımı",
+    "Uzun ömürlü keskinlik"
+  ],
+  
+  longDescription: customData?.longDescription || "Bu ürün, profesyonel şeflerin ve yemek tutkunlarının ihtiyaçlarına göre özel olarak tasarlanmıştır. Keskinliği ve dengesi ile mutfakta harikalar yaratmanızı sağlar.",
+  
+  usage: customData?.usage || "Bıçağınızı kemik veya donmuş gıda kesiminde kullanmayınız. Ahşap veya plastik kesme tahtası tercih ediniz.",
+  
+  care: customData?.care || "Bıçağınızı bulaşık makinesinde yıkamayınız. Ilık su ve sabunla elde yıkayıp hemen kurulayınız."
 });
 
 // BÜTÜN LİSTEYİ BURAYA KOYUYORUZ VE BAŞINA 'export' EKLİYORUZ
 export const ALL_PRODUCTS: LocalProduct[] = [
     // Şef Bıçağı
-    fakeProduct("1", "sef-bicagi", "Şef Bıçağı Santoku", 599, 10, "sefBicagiSantoku.png"),
+    fakeProduct("1", "sef-bicagi", "Şef Bıçağı Santoku", 599, 10, "sefBicagiSantoku.png",0,
+        {
+            shortDescription: "Japon mutfağından ilham alan Santoku, sebze doğramada mükemmel denge sağlar.",
+            features: [
+                "Japon 4116 Çelik",
+                "Ceviz Ağacı Sap",
+                "18 cm Namlu Uzunluğu",
+                "Ultra Hafif Yapı"
+            ],
+            longDescription: "Santoku bıçağı, 'üç erdem' anlamına gelir: Dilimleme, doğrama ve kıyma. Bu bıçak, geniş yüzeyi sayesinde kesilen parçaları kolayca taşımanıza olanak tanır.",
+            usage: "Sebze, meyve ve kemiksiz et kesimi için idealdir.",
+            care: "Sadece elde yıkayın ve asidik gıdaları kestikten sonra hemen durulayın."
+        }),
     fakeProduct("2", "sef-bicagi", "100. Yıl Özel Şef Bıçağı", 449.9, 5, "100.YilOzelSefBicagi.png"),
     fakeProduct("3", "sef-bicagi", "Şef Bıçağı Paslanmaz Çelik", 599, 0, "sefBicagiPaslanmazCelik.png"),
     fakeProduct("4", "sef-bicagi", "Japon Şef Bıçağı", 750, 8, "japonSefBicagi.png"),

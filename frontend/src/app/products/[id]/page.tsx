@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react"; // useEffect eklendi
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
@@ -16,6 +16,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { ALL_PRODUCTS } from "@/lib/mock-data"; 
 
+// Accordion Bileşeni
 function AccordionItem({ title, isOpen, onClick, children }: { title: string, isOpen: boolean, onClick: () => void, children: React.ReactNode }) {
   return (
     <div className="border-b border-gray-200">
@@ -38,9 +39,10 @@ function AccordionItem({ title, isOpen, onClick, children }: { title: string, is
 export default function ProductDetailPage() {
   const params = useParams();
   const id = params?.id as string;
+  
+  // Ürünü buluyoruz. mock-data'daki tip güncellendiği için yeni alanlar (shortDescription vs) burada erişilebilir olacak.
   const product = ALL_PRODUCTS.find((p) => p.id === id);
 
-  // 'items' listesini de alıyoruz
   const { add, items } = useCart();
 
   const [quantity, setQuantity] = useState(1);
@@ -51,23 +53,15 @@ export default function ProductDetailPage() {
 
   // --- STOK MANTIĞI ---
   const stock = product.stock ?? 0;
-  
-  // Sepette şu an bu üründen kaç tane var?
   const cartItem = items.find(i => i.id === product.id);
   const qtyInCart = cartItem ? cartItem.qty : 0;
-
-  // Kullanıcının şu an ekleyebileceği maksimum adet (Stok - Sepetteki)
   const remainingStock = Math.max(0, stock - qtyInCart);
-  
-  // Hiç stok yok mu? (Genel stok 0 ise VEYA kalan hak 0 ise)
   const isOutOfStock = stock === 0;
-  const isMaxedOut = remainingStock === 0; // Sepet dolu
+  const isMaxedOut = remainingStock === 0;
 
-  // Miktar değiştiğinde kontrol (Kalan stoktan fazlasını seçtirme)
   const handleQuantityChange = (delta: number) => {
     setQuantity(prev => {
         const newValue = prev + delta;
-        // 1'den küçük olamaz, kalan stoktan büyük olamaz
         return Math.max(1, Math.min(newValue, remainingStock));
     });
   };
@@ -79,10 +73,9 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (isOutOfStock || isMaxedOut) return;
     
-    // Güvenlik kontrolü: Seçilen miktar kalandan fazlaysa uyarı ver
     if (quantity > remainingStock) {
         alert(`Stokta sadece ${remainingStock} adet daha ürün kaldı.`);
-        setQuantity(remainingStock); // Miktarı düzel
+        setQuantity(remainingStock);
         return;
     }
 
@@ -93,19 +86,30 @@ export default function ProductDetailPage() {
       imageUrl: product.imageUrl || "",
     }, quantity);
     
-    // Ekleme sonrası miktar 1'e dönsün ama eğer stok dolduysa buton pasif olacak
     setQuantity(1);
-    
     alert(`${quantity} adet ${product.title} sepete eklendi!`);
   };
 
-  // Kalan stok 0 ise miktarı 1 yerine 0 veya pasif göstermek için
   const displayQuantity = isMaxedOut ? 0 : quantity;
+
+  // --- VARSAYILAN DEĞERLER (Mock Data boşsa bunlar görünür) ---
+  const defaultShortDesc = `${product.title}, mutfağınızdaki en büyük yardımcınız olmaya aday. Ülgen Paslanmaz kalitesiyle üretilmiştir.`;
+  
+  const defaultFeatures = [
+    "Profesyonel el işçiliği",
+    "Yüksek karbonlu paslanmaz çelik",
+    "Ergonomik sap tasarımı",
+    "Uzun ömürlü keskinlik"
+  ];
+
+  const defaultUsage = "Bıçağınızı sadece amacına uygun olarak (kesme, doğrama) kullanınız. Dondurulmuş gıdalar veya kemik gibi sert cisimlerde kullanmayınız.";
+  const defaultCare = "Bulaşık makinesinde yıkanması tavsiye edilmez. Ilık su ve sünger ile elde yıkayıp hemen kurulayınız.";
 
   return (
     <div className="bg-white min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         
+        {/* Breadcrumb */}
         <nav className="flex mb-8 text-sm text-gray-500">
           <Link href="/" className="hover:text-gray-900">Ana Sayfa</Link>
           <span className="mx-2">/</span>
@@ -140,10 +144,11 @@ export default function ProductDetailPage() {
           <div className="mt-8 lg:mt-0">
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{product.title}</h1>
             
+            {/* --- DİNAMİK KISA AÇIKLAMA --- */}
             <div className="mt-4 prose prose-sm text-gray-500">
               <p>
-                {product.title}, mutfağınızdaki en büyük yardımcınız olmaya aday. 
-                Ülgen Paslanmaz kalitesiyle üretilmiştir.
+                {/* Eğer data'da shortDescription varsa onu, yoksa varsayılanı göster */}
+                {product.shortDescription || defaultShortDesc}
               </p>
             </div>
 
@@ -179,7 +184,6 @@ export default function ProductDetailPage() {
                   <button 
                     onClick={() => handleQuantityChange(-1)}
                     className="p-3 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                    // 1'den aşağı inmesin VEYA stok tamamen bittiyse VEYA sepette limit dolduysa basılmasın
                     disabled={displayQuantity <= 1 || isOutOfStock || isMaxedOut}
                   >
                     <MinusIcon className="h-4 w-4" />
@@ -190,7 +194,6 @@ export default function ProductDetailPage() {
                   <button 
                     onClick={() => handleQuantityChange(1)}
                     className="p-3 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                    // Seçilen miktar kalan stoğa ulaştıysa basılmasın
                     disabled={displayQuantity >= remainingStock || isOutOfStock || isMaxedOut}
                   >
                     <PlusIcon className="h-4 w-4" />
@@ -214,13 +217,13 @@ export default function ProductDetailPage() {
               </button>
             </div>
             
-            {/* Kalan stok bilgisi (Opsiyonel ama kullanıcı dostu) */}
             {!isOutOfStock && remainingStock < 5 && remainingStock > 0 && (
                 <p className="mt-2 text-sm text-red-600 font-medium">
                     Son {remainingStock} ürün kaldı!
                 </p>
             )}
 
+            {/* İkonlar (Kargo vb.) */}
             <div className="mt-8 space-y-4 border-t border-gray-200 pt-8">
               <div className="flex items-center gap-3">
                 <TruckIcon className="h-6 w-6 text-gray-600 flex-shrink-0" />
@@ -236,34 +239,49 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
+            {/* --- DİNAMİK ACCORDION BÖLÜMÜ --- */}
             <div className="mt-8 border-t border-gray-200">
+              
+              {/* 1. Ürün Açıklaması & Özellikler */}
               <AccordionItem 
                 title="Ürün Açıklaması" 
                 isOpen={openSection === 'description'} 
                 onClick={() => toggleSection('description')}
               >
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Profesyonel el işçiliği</li>
-                  <li>Yüksek karbonlu paslanmaz çelik</li>
-                  <li>Ergonomik sap tasarımı</li>
-                  <li>Uzun ömürlü keskinlik</li>
-                </ul>
+                <div className="space-y-4">
+                    {/* Uzun açıklama varsa göster */}
+                    {product.longDescription && (
+                        <p>{product.longDescription}</p>
+                    )}
+
+                    {/* Özellikler listesi varsa göster, yoksa varsayılanı göster */}
+                    <ul className="list-disc pl-5 space-y-1">
+                      {(product.features && product.features.length > 0 
+                          ? product.features 
+                          : defaultFeatures
+                      ).map((feature, idx) => (
+                        <li key={idx}>{feature}</li>
+                      ))}
+                    </ul>
+                </div>
               </AccordionItem>
 
+              {/* 2. Kullanım Talimatı */}
               <AccordionItem 
                 title="Kullanım Talimatı" 
                 isOpen={openSection === 'usage'} 
                 onClick={() => toggleSection('usage')}
               >
-                <p>Bıçağınızı sadece amacına uygun olarak (kesme, doğrama) kullanınız. Dondurulmuş gıdalar veya kemik gibi sert cisimlerde kullanmayınız.</p>
+                <p>{product.usage || defaultUsage}</p>
               </AccordionItem>
 
+              {/* 3. Temizleme */}
               <AccordionItem 
                 title="Temizleme" 
                 isOpen={openSection === 'cleaning'} 
                 onClick={() => toggleSection('cleaning')}
               >
-                <p>Bulaşık makinesinde yıkanması tavsiye edilmez. Ilık su ve sünger ile elde yıkayıp hemen kurulayınız.</p>
+                <p>{product.care || defaultCare}</p>
               </AccordionItem>
             </div>
 

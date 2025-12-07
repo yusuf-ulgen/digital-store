@@ -5,16 +5,17 @@ import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
-// Basit ID üreteci
 const generateId = () => Math.random().toString(36).substring(7);
 
 export default function ChatWidget() {
+  // -----------------------------------------------------------------------
+  // 1. ADIM: TÜM HOOK'LAR BURADA TANIMLANMAK ZORUNDA (Sıralama Bozulamaz)
+  // -----------------------------------------------------------------------
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Yeni API: input/handleInputChange yok, kendi state'imizi tutacağız
   const {
     messages,
     sendMessage,
@@ -31,10 +32,8 @@ export default function ChatWidget() {
   const isLoading = status === 'submitted' || status === 'streaming';
   const [hasGreeted, setHasGreeted] = useState(false);
 
-  // --- AYARLAR ---
-  const currentCat = searchParams.get('cat') ?? 'bicaklar';
+  // Ayarlar
   const isProductsPage = pathname === '/products';
-
   const defaultSize = { width: 320, height: 380 };
   const [size, setSize] = useState(defaultSize);
   const minSize = defaultSize;
@@ -51,37 +50,13 @@ export default function ChatWidget() {
     startHeight: defaultSize.height,
   });
 
-  const goToCategory = (slug: string) => {
-    if (isProductsPage && currentCat === slug) return false;
-    router.push(`/products?cat=${slug}`);
-    return true;
-  };
-
-  // --- 1. OTOMATİK ASİSTAN MESAJI ---
-  const sendAutomatedMessage = (text: string) => {
-    const lastTwo = messages.slice(-2);
-    if (lastTwo.length === 2 && lastTwo.every((m: any) => m.role === 'assistant')) {
-      return;
-    }
-
-    const newMessage = {
-      id: generateId(),
-      role: 'assistant',
-      // yeni tip aslında parts kullanıyor ama biz content de tutuyoruz
-      content: text,
-      parts: [{ type: 'text', text }],
-    } as any;
-
-    setMessages((prev: any[]) => [...prev, newMessage]);
-  };
-
-  // --- 2. 10 SANİYE SONRA MERHABA ---
+  // --- Otomatik Selamlama ---
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!hasGreeted && messages.length === 0) {
         setIsOpen(true);
         const text =
-          "Merhaba! 👋 Ülgen Paslanmaz'a hoş geldiniz. Size özel bıçaklarımız hakkında yardımcı olabilir miyim? Ne tür bir ürün arıyorsunuz?";
+          "Merhaba! 👋 Ülgen Paslanmaz'a hoş geldiniz. Size özel bıçaklarımız hakkında yardımcı olabilir miyim?";
         const greetingMessage = {
           id: generateId(),
           role: 'assistant',
@@ -97,7 +72,37 @@ export default function ChatWidget() {
     return () => clearTimeout(timer);
   }, [hasGreeted, messages.length, setMessages]);
 
-  // Resize Handler'lar
+  // --- AI Yönlendirme Dinleyicisi ---
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+
+    if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
+      lastMessage.toolInvocations.forEach((toolInvocation: any) => {
+        
+        // Kategori Yönlendirmesi
+        if (toolInvocation.toolName === 'goToCategoryPage') {
+          const args = toolInvocation.args;
+          const slug = args.categorySlug || args.slug;
+          if (slug) {
+             router.push(`/products?cat=${slug}`);
+          }
+        }
+
+        // Ürün Yönlendirmesi
+        if (toolInvocation.toolName === 'goToProductPage') {
+          const args = toolInvocation.args;
+          const pid = args.id || args.productId;
+          if (pid) {
+             router.push(`/products/${pid}`);
+          }
+        }
+      });
+    }
+  }, [messages, router]);
+
+
+  // --- Resize Mantığı ---
   function handleResizeMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsResizing(true);
@@ -133,36 +138,17 @@ export default function ChatWidget() {
     };
   }, [isResizing, maxSize, minSize]);
 
-  // --- 3. KULLANICI MESAJ GÖNDERME ---
+  // --- Mesaj Gönderme ---
   const handleSend = async () => {
     const value = localInput.trim();
     if (!value || isLoading) return;
+    
+    // AI ile çakışan manuel yönlendirmeleri kaldırdım.
+    // Artık kararı tamamen AI (route.ts) verecek.
 
     const lower = value.toLocaleLowerCase('tr');
-    let followUpQuestion = '';
 
-    // Yönlendirme Mantığı
-    if (lower.includes('şef bıç') || lower.includes('sef bic')) {
-      goToCategory('sef-bicagi');
-      followUpQuestion =
-        'Sizi Şef Bıçakları reyonumuza aldım. 🔪 Profesyonel bir kullanım için mi bakıyorsunuz yoksa ev kullanımı için mi?';
-    } else if (
-      lower.includes('kasap') ||
-      lower.includes('satır') ||
-      lower.includes('satir')
-    ) {
-      goToCategory('kasap');
-      followUpQuestion =
-        'Kasap reyonuna yönlendirdim. Ağır hizmet tipi satır mı yoksa sıyırma bıçağı mı arıyorsunuz?';
-    } else if (lower.includes('masat') || lower.includes('bileyici')) {
-      goToCategory('bileyici-masatlar');
-      followUpQuestion =
-        'Bileyici bölümündeyiz. Bıçaklarınızın şu anki durumu nasıl, çok mu köreldiler?';
-    } else if (lower.includes('bıçak') || lower.includes('mutfak')) {
-      goToCategory('bicaklar');
-    }
-
-    // Filtreleme
+    // Filtreleme (Frontend tarafında kalabilir)
     if (isProductsPage) {
       const params = new URLSearchParams(searchParams.toString());
       let changed = false;
@@ -183,26 +169,10 @@ export default function ChatWidget() {
       }
     }
 
-    // Kullanıcı mesajını AI'ye gönder
     await sendMessage({ text: value });
-    setLocalInput(''); // input'u temizle
-
-    // Takip sorusu
-    if (followUpQuestion) {
-      setTimeout(() => {
-        const followUpMsg = {
-          id: generateId(),
-          role: 'assistant',
-          content: followUpQuestion,
-          parts: [{ type: 'text', text: followUpQuestion }],
-        } as any;
-
-        setMessages((prev: any[]) => [...prev, followUpMsg]);
-      }, 4000);
-    }
+    setLocalInput('');
   };
 
-  // Enter tuşu
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -210,6 +180,18 @@ export default function ChatWidget() {
     }
   };
 
+  // -----------------------------------------------------------------------
+  // 2. ADIM: ADMIN KONTROLÜ BURADA YAPILIR (Hook'lardan Sonra)
+  // -----------------------------------------------------------------------
+  // Eğer url /admin ile başlıyorsa widget'ı render etme (null döndür).
+  // Bu, React kurallarını bozmadan botu gizler.
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
+  // -----------------------------------------------------------------------
+  // 3. ADIM: ARAYÜZ (HTML)
+  // -----------------------------------------------------------------------
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {!isOpen && (
@@ -217,7 +199,7 @@ export default function ChatWidget() {
           onClick={() => setIsOpen(true)}
           className="rounded-full px-4 py-2 shadow-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition flex items-center gap-2"
         >
-          <span>Yardıma ihtiyacın var mı?</span>
+          <span>Yardım</span>
           {!hasGreeted && (
             <span className="flex h-2 w-2 rounded-full bg-white animate-pulse"></span>
           )}
@@ -251,7 +233,6 @@ export default function ChatWidget() {
           {/* Mesaj Alanı */}
           <div className="flex-1 px-3 py-2 overflow-y-auto bg-gray-50 text-sm space-y-2">
             {messages.map((m: any, idx: number) => {
-              // hem content hem parts destekleyelim
               const text =
                 m.content ??
                 m.parts?.map((p: any) => (p.type === 'text' ? p.text : '')).join('') ??
