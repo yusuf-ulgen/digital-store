@@ -70,8 +70,10 @@ const fakeProduct = (
   soldCount,
 });
 
-async function getProductsForCategory(
-  categorySlug: string,
+// --- GÜNCELLENMİŞ Veri Çekme Fonksiyonu ---
+async function getFilteredProducts(
+  categorySlug: string | null, // Kategori (arama yapılıyorsa null olabilir)
+  searchQuery: string | null,  // Arama terimi
   searchParams: { [key: string]: string | string[] | undefined }
 ): Promise<LocalProduct[]> {
   const { minFiyat, maxFiyat, stokta, sirala } = searchParams as {
@@ -81,9 +83,22 @@ async function getProductsForCategory(
     sirala?: string;
   };
 
-  const allProducts = ALL_PRODUCTS;
+  let products = ALL_PRODUCTS;
 
-  let products = allProducts.filter((p) => p.category === categorySlug);
+  // 1. ARAMA FİLTRESİ (En öncelikli)
+  if (searchQuery) {
+    const q = searchQuery.toLocaleLowerCase("tr"); // Türkçe karakter uyumu
+    products = products.filter((p) => 
+      p.title.toLocaleLowerCase("tr").includes(q) ||
+      p.shortDescription?.toLocaleLowerCase("tr").includes(q)
+    );
+  } 
+  // 2. KATEGORİ FİLTRESİ (Eğer arama yapılmıyorsa çalışır)
+  else if (categorySlug) {
+    products = products.filter((p) => p.category === categorySlug);
+  }
+
+  // --- Ortak Filtreler (Stok, Fiyat, Sıralama) ---
 
   // Stok filtresi
   if (stokta === "stokta") {
@@ -135,70 +150,109 @@ type CategoryPageProps = {
   searchParams: Promise<CategoryPageSearchParams>;
 };
 
+// --- GÜNCELLENMİŞ Ana Bileşen ---
 export default async function ProductsPage({ searchParams }: CategoryPageProps) {
   const resolvedSearchParams = await searchParams;
 
-  const rawSlug = (resolvedSearchParams.cat as string) || "bicaklar";
-  const categorySlug = normalizeCategorySlug(rawSlug);
+  // URL Parametrelerini Al
+  const searchQuery = resolvedSearchParams.query as string | undefined;
+  const rawCat = resolvedSearchParams.cat as string | undefined;
 
-  const categoryInfo = getCategoryInfo(categorySlug);
-  const products = await getProductsForCategory(categorySlug, resolvedSearchParams);
+  // Sayfa Başlığı ve Açıklaması için değişkenler
+  let pageTitle = "";
+  let pageDescription = "";
+  let products: LocalProduct[] = [];
+  let isSearchMode = false;
 
-  if (!categoryInfo) {
-    return (
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-2xl font-bold">Kategori Bulunamadı</h1>
-        <p className="mt-2 text-gray-600">
-          Aradığınız kategori (`{categorySlug}`) mevcut değil.
-        </p>
-        <Link
-          href="/"
-          className="mt-6 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
-        >
-          Ana Sayfaya Dön
-        </Link>
-      </main>
-    );
+  // DURUM 1: ARAMA YAPILIYORSA
+  if (searchQuery) {
+    isSearchMode = true;
+    pageTitle = `"${searchQuery}" için arama sonuçları`;
+    pageDescription = "Aradığınız kriterlere uygun ürünler listeleniyor.";
+    // Kategoriyi null gönderiyoruz, aramayı gönderiyoruz
+    products = await getFilteredProducts(null, searchQuery, resolvedSearchParams);
+  } 
+  
+  // DURUM 2: KATEGORİ GEZİLİYORSA
+  else {
+    // Kategori slug'ını belirle (Varsayılan: bicaklar)
+    const categorySlug = normalizeCategorySlug(rawCat || "bicaklar");
+    const categoryInfo = getCategoryInfo(categorySlug);
+
+    // Kategori verisi yoksa 404 ekranı göster
+    if (!categoryInfo) {
+      return (
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <h1 className="text-2xl font-bold">Kategori Bulunamadı</h1>
+          <p className="mt-2 text-gray-600">Aradığınız kategori mevcut değil.</p>
+          <Link href="/" className="mt-6 inline-block rounded-md bg-stone-900 px-4 py-2 text-sm font-medium text-white">
+            Ana Sayfaya Dön
+          </Link>
+        </main>
+      );
+    }
+
+    pageTitle = categoryInfo.title;
+    pageDescription = categoryInfo.description;
+    // Aramayı null gönderiyoruz, kategoriyi gönderiyoruz
+    products = await getFilteredProducts(categorySlug, null, resolvedSearchParams);
   }
 
   return (
     <div className="bg-white">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb (Gezinti Yolu) */}
         <div className="flex items-center space-x-2 py-4 text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-700">
-            Ana Sayfa
-          </Link>
+          <Link href="/" className="hover:text-gray-700">Ana Sayfa</Link>
           <span>/</span>
-          <span className="font-medium text-gray-700">{categoryInfo.title}</span>
+          <span className="font-medium text-gray-700">
+            {isSearchMode ? "Arama Sonuçları" : pageTitle}
+          </span>
         </div>
 
-        {/* Başlık + sıralama */}
-        <div className="border-b border-gray-200 pb-6 pt-12 flex items-center justify-between gap-4">
+        {/* Başlık + Sıralama */}
+        <div className="border-b border-gray-200 pb-6 pt-12 flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">
-              {categoryInfo.title}
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
+              {pageTitle}
             </h1>
-            <p className="mt-4 text-base text-gray-600">{categoryInfo.description}</p>
+            <p className="mt-4 text-base text-gray-600">{pageDescription}</p>
           </div>
-
           <SortDropdown />
         </div>
 
         <div className="grid grid-cols-1 gap-x-8 gap-y-10 py-10 lg:grid-cols-4">
+          {/* Sidebar: Arama modunda bile filtreleri (fiyat/stok) kullanabilmek için sidebar kalabilir */}
           <div className="hidden lg:block">
             <CategorySidebar searchParams={resolvedSearchParams} />
           </div>
 
+          {/* Ürün Listesi */}
           <div className="lg:col-span-3">
             {products.length > 0 ? (
-              <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className="mb-4 text-sm text-gray-500">
+                  Toplam {products.length} ürün bulundu.
+                </div>
+                <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              </>
             ) : (
-              <div className="text-center text-gray-500 py-16">
-                <p>Bu kategoride ve filtrelerde ürün bulunamadı.</p>
+              <div className="flex flex-col items-center justify-center text-center text-gray-500 py-20 bg-gray-50 rounded-lg">
+                <p className="text-lg font-medium mb-2">Ürün Bulunamadı</p>
+                <p>
+                  {isSearchMode 
+                    ? `"${searchQuery}" ile eşleşen bir sonuç bulamadık.` 
+                    : "Bu kategoride şu an ürün bulunmamaktadır."}
+                </p>
+                {isSearchMode && (
+                   <Link href="/products" className="mt-4 text-indigo-600 underline">
+                     Tüm ürünleri gör
+                   </Link>
+                )}
               </div>
             )}
           </div>

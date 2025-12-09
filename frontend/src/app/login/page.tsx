@@ -83,9 +83,6 @@ export default function LoginPage() {
           {loading ? "Giriş yapılıyor..." : "Giriş"}
         </button>
       </form>
-      <div className="mt-4 text-xs text-stone-500">
-        Girişten sonra DevTools Console’a <code>localStorage.getItem("token")</code> yazıp kontrol edebilirsin.
-      </div>
     </div>
   );
 }

@@ -38,17 +38,48 @@ function AnnouncementBar() {
 
 function TopInfoRow() {
   return (
-    <div style={{ width: "100%", background: "#f7f8fa", color: "#6b7280" }}>
+    <div style={{ width: "100%", background: "#f7f8fa", color: "#6b7280", borderBottom: "1px solid #e5e7eb" }}>
       <div style={{ ...container, ...rowBetween, padding: "8px 16px" }}>
-        <div style={{ ...rowCenter, gap: 24 }}>
-          <a href="tel:05555555555" style={{ color: "#6b7280", textDecoration: "none" }}>
-            0 555 555 55 55
+        <div style={{ ...rowCenter, gap: 24, fontSize: "13px" }}>
+          {/* Telefon Linki */}
+          <a
+            href="tel:05555555555"
+            style={{ 
+              color: "#6b7280", 
+              textDecoration: "none", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px",
+              transition: "color 0.2s ease",
+              cursor: "pointer" // Tıklanabilir el işareti
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = "#111111"}
+            onMouseOut={(e) => e.currentTarget.style.color = "#6b7280"}
+          >
+            📞 <span>0 555 555 55 55</span>
           </a>
-          <a href="mailto:ulgenpaslanmaz@gmail.com" style={{ color: "#6b7280", textDecoration: "none" }}>
-            ulgenpaslanmaz@gmail.com
+
+          {/* Mail Linki */}
+          <a
+            href="mailto:ulgenpaslanmaz@gmail.com"
+            style={{ 
+              color: "#6b7280", 
+              textDecoration: "none", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px",
+              transition: "color 0.2s ease",
+              cursor: "pointer" // Tıklanabilir el işareti
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = "#111111"}
+            onMouseOut={(e) => e.currentTarget.style.color = "#6b7280"}
+          >
+             ✉️ <span>ulgenpaslanmaz@gmail.com</span>
           </a>
         </div>
-        <div style={{ color: "#1f2937", fontSize: 13, fontWeight: 600, letterSpacing: "0.02em" }}>
+        
+        {/* Slogan */}
+        <div style={{ color: "#1f2937", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em" }}>
           İNCE İŞÇİLİK & MÜKEMMEL KESKİNLİK
         </div>
       </div>

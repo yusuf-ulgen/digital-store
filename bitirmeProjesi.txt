@@ -24,7 +24,13 @@
 
 					
 					26  Aralıktaki Sunum
+					YAPILACAKLAR
 1) Sipariş kısmının tanımlanması
 2) Asistanın sipariş işlemlerine yardımcı olması kargo durumunu sorgulaması vs
 3) Frontend tasarımının tamamlanması ve son sunum
 
+					DÜZENLEMELER
+
+(-) 1) Search barı çalışacak
+(-) 2) Tıklanabilir özellikler çalışacak (mail ve tel no)
+(-) 3) 
