@@ -43,8 +43,8 @@ builder.Services.AddSingleton<
     ECom.Api.Services.Observability.InMemoryEventLogger>();
 // State machine servisi
 builder.Services.AddScoped<IOrderStateService, OrderStateService>();
-// Stok (şimdilik Noop)
-builder.Services.AddScoped<IInventoryService, NoopInventoryService>();
+// Stok (Gerçek Firestore Entegrasyonu)
+builder.Services.AddScoped<IInventoryService, FirestoreInventoryService>();
 
 /* ---------- Firebase Admin & Firestore ---------- */
 var projectId = builder.Configuration["Firebase:ProjectId"]

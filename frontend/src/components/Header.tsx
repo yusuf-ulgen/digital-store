@@ -9,27 +9,30 @@ import {
   useRef,
   useState,
   type FormEvent,
-  type CSSProperties,
 } from "react";
 import { useCart } from "@/lib/cart";
-
-// 🔧 Tek yerden import et; tekrarını SİL
-import { getToken, clearToken, logout as doLogout } from "@/lib/auth";
-
-/* ---- Kısa stil yardımcıları ---- */
-const container: CSSProperties = { maxWidth: "1280px", margin: "0 auto", padding: "0 16px" };
-const rowBetween: CSSProperties = { display: "flex", alignItems: "center", justifyContent: "space-between" };
-const rowCenter: CSSProperties = { display: "flex", alignItems: "center" };
+import { getToken, logout as doLogout } from "@/lib/auth";
+import { 
+  Search, 
+  ShoppingCart, 
+  User, 
+  LogOut, 
+  Phone, 
+  Mail, 
+  ChevronRight,
+  Menu,
+  X
+} from "lucide-react";
 
 const SEARCH_LS = "ulgen.searchHistory.v1";
 
 /* ---- Üst bilgilendirme şeritleri ---- */
 function AnnouncementBar() {
   return (
-    <div style={{ width: "100%", background: "#000000", color: "#ffffff" }}>
-      <div style={{ ...container, padding: "0.1px 16px" }}>
-        <p style={{ textAlign: "center", fontSize: "10px", letterSpacing: "0.02em" }}>
-          TÜM ÜRÜNLERDE ÜCRETSİZ &amp; HIZLI KARGO
+    <div className="w-full bg-black text-white py-1.5 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4">
+        <p className="text-center text-[10px] uppercase tracking-[0.2em] font-medium whitespace-nowrap animate-pulse">
+          TÜM ÜRÜNLERDE ÜCRETSİZ &amp; HIZLI KARGO — SINIRLI SÜRE!
         </p>
       </div>
     </div>
@@ -38,48 +41,30 @@ function AnnouncementBar() {
 
 function TopInfoRow() {
   return (
-    <div style={{ width: "100%", background: "#f7f8fa", color: "#6b7280", borderBottom: "1px solid #e5e7eb" }}>
-      <div style={{ ...container, ...rowBetween, padding: "8px 16px" }}>
-        <div style={{ ...rowCenter, gap: 24, fontSize: "13px" }}>
+    <div className="w-full bg-gray-50 text-gray-500 border-b border-gray-200 hidden md:block">
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between py-2 text-xs">
+        <div className="flex items-center gap-6">
           {/* Telefon Linki */}
           <a
             href="tel:05555555555"
-            style={{ 
-              color: "#6b7280", 
-              textDecoration: "none", 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "6px",
-              transition: "color 0.2s ease",
-              cursor: "pointer" // Tıklanabilir el işareti
-            }}
-            onMouseOver={(e) => e.currentTarget.style.color = "#111111"}
-            onMouseOut={(e) => e.currentTarget.style.color = "#6b7280"}
+            className="flex items-center gap-1.5 hover:text-black transition-colors"
           >
-            📞 <span>0 555 555 55 55</span>
+            <Phone size={12} />
+            <span>0 555 555 55 55</span>
           </a>
 
           {/* Mail Linki */}
           <a
             href="mailto:ulgenpaslanmaz@gmail.com"
-            style={{ 
-              color: "#6b7280", 
-              textDecoration: "none", 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "6px",
-              transition: "color 0.2s ease",
-              cursor: "pointer" // Tıklanabilir el işareti
-            }}
-            onMouseOver={(e) => e.currentTarget.style.color = "#111111"}
-            onMouseOut={(e) => e.currentTarget.style.color = "#6b7280"}
+            className="flex items-center gap-1.5 hover:text-black transition-colors"
           >
-             ✉️ <span>ulgenpaslanmaz@gmail.com</span>
+            <Mail size={12} />
+            <span>ulgenpaslanmaz@gmail.com</span>
           </a>
         </div>
         
         {/* Slogan */}
-        <div style={{ color: "#1f2937", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em" }}>
+        <div className="text-gray-900 font-bold tracking-widest uppercase">
           İNCE İŞÇİLİK & MÜKEMMEL KESKİNLİK
         </div>
       </div>
@@ -93,23 +78,23 @@ function MainHeader() {
   const { count } = useCart();
 
   const handleLogout = async () => {
-  await doLogout();             // Firebase signOut + localStorage temizliği + "auth:changed" event
-  setHasToken(!!getToken());    // state'i yenile
-  router.push("/login");
-};
+    await doLogout();
+    setHasToken(!!getToken());
+    router.push("/login");
+  };
 
-  /* Token durumu (Giriş Yap / Çıkış Yap) */
+  /* Token durumu */
   const [hasToken, setHasToken] = useState(false);
   useEffect(() => {
-  const refresh = () => setHasToken(!!getToken());
-  refresh();
-  window.addEventListener("storage", refresh);
-  window.addEventListener("auth:changed", refresh);
-  return () => {
-    window.removeEventListener("storage", refresh);
-    window.removeEventListener("auth:changed", refresh);
-  };
-}, []);
+    const refresh = () => setHasToken(!!getToken());
+    refresh();
+    window.addEventListener("storage", refresh);
+    window.addEventListener("auth:changed", refresh);
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener("auth:changed", refresh);
+    };
+  }, []);
 
   /* Logo modal */
   const [showLogo, setShowLogo] = useState(false);
@@ -120,7 +105,7 @@ function MainHeader() {
     return () => window.removeEventListener("keydown", onKey);
   }, [showLogo]);
 
-  /* Arama kutusu (site-içi geçmiş) */
+  /* Arama kutusu */
   const [q, setQ] = useState("");
   const [openSug, setOpenSug] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -131,7 +116,7 @@ function MainHeader() {
     } catch {
       return [];
     }
-  }, [openSug]); // açılınca yeniden oku
+  }, [openSug]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -165,151 +150,73 @@ function MainHeader() {
   };
 
   return (
-    <div style={{ width: "100%", background: "#ffffff" }}>
-      <div
-        style={{
-          ...container,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 16,
-          padding: "20px 16px",
-        }}
-      >
-        {/* Sol: Logo (modal + anasayfa davranışı) */}
-        <div style={{ display: "flex", alignItems: "center" }}>
+    <div className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4 md:gap-8">
+        {/* Sol: Logo */}
+        <div className="flex-shrink-0">
           <Link
             href="/"
-            aria-label="ÜLGEN Paslanmaz anasayfa"
             onClick={(e) => {
-              // Ctrl/⌘ tık ile anasayfa, normal tık ile modal
               if (e.metaKey || e.ctrlKey) return;
               e.preventDefault();
               setShowLogo(true);
             }}
-            title="Logo büyüt (Anasayfa için Ctrl/⌘ ile tıkla)"
-            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", cursor: "zoom-in" }}
+            className="block h-12 md:h-16 w-auto cursor-zoom-in hover:opacity-90 transition-opacity"
           >
             <Image
               src="/LOGO.png"
               alt="ÜLGEN Paslanmaz"
-              width={185}
-              height={120}
+              width={160}
+              height={64}
               priority
-              style={{ height: 90, width: "auto", objectFit: "contain" }}
+              className="h-full w-auto object-contain"
             />
           </Link>
         </div>
 
-        {/* Orta: Arama (yalnızca site-içi geçmiş) */}
-        <div style={{ flex: "1 1 540px" }} ref={boxRef}>
-          <form onSubmit={onSearch} style={{ display: "flex", position: "relative" }} autoComplete="off">
-            <label htmlFor="q" style={{ position: "absolute", left: -9999 }}>
-              Ürün Ara
-            </label>
+        {/* Orta: Arama */}
+        <div className="flex-1 max-w-2xl hidden md:block" ref={boxRef}>
+          <form onSubmit={onSearch} className="relative group">
             <input
-              id="q"
-              name="ulgen-search"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
+              type="text"
               value={q}
               onChange={(e) => {
                 setQ(e.target.value);
                 setOpenSug(true);
               }}
               onFocus={() => setOpenSug(true)}
-              placeholder="Ürün Ara..."
-              style={{
-                flex: 1,
-                height: 56,
-                border: "1px solid #d1d5db",
-                borderRight: "none",
-                borderTopLeftRadius: 12,
-                borderBottomLeftRadius: 12,
-                background: "#f6f7f9",
-                padding: "0 14px",
-                fontSize: 15,
-                outline: "none",
-              }}
+              placeholder="Kusursuz keskinliği arayın..."
+              className="w-full h-12 pl-5 pr-12 rounded-full border border-gray-200 bg-gray-50 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none text-sm"
             />
             <button
               type="submit"
-              aria-label="Ara"
-              style={{
-                height: 56,
-                padding: "0 20px",
-                border: "1px solid #d1d5db",
-                borderTopRightRadius: 12,
-                borderBottomRightRadius: 12,
-                background: "#2b2b2b",
-                color: "#ffffff",
-                cursor: "pointer",
-              }}
+              className="absolute right-2 top-1.5 h-9 w-9 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-black transition-colors"
             >
-              🔍
+              <Search size={18} />
             </button>
 
             {/* Öneriler */}
             {openSug && history.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 58,
-                  left: 0,
-                  right: 0,
-                  background: "#ffffff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 12,
-                  padding: "6px",
-                  boxShadow: "0 8px 30px rgba(0,0,0,.08)",
-                  zIndex: 10,
-                }}
-              >
+              <div className="absolute top-14 left-0 right-0 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Son Aramalar</div>
                 {history
                   .filter((h) => !q || h.toLowerCase().includes(q.toLowerCase()))
                   .map((h, i) => (
                     <button
                       type="button"
                       key={i}
-                      onClick={() => {
-                        setQ(h);
-                        onSearch();
-                      }}
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "10px 12px",
-                        borderRadius: 8,
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.background = "#f3f4f6")}
-                      onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                      onClick={() => { setQ(h); onSearch(); }}
+                      className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-50 flex items-center gap-3 transition-colors text-sm"
                     >
+                      <Search size={14} className="text-gray-300" />
                       {h}
                     </button>
                   ))}
-                <div style={{ height: 1, background: "#eee", margin: "4px 6px" }} />
+                <div className="h-px bg-gray-100 my-2 mx-1" />
                 <button
                   type="button"
-                  onClick={() => {
-                    localStorage.removeItem(SEARCH_LS);
-                    setOpenSug(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    textAlign: "center",
-                    padding: "8px 12px",
-                    fontSize: 12,
-                    color: "#6b7280",
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                  }}
+                  onClick={() => { localStorage.removeItem(SEARCH_LS); setOpenSug(false); }}
+                  className="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition-colors font-medium "
                 >
                   Geçmişi temizle
                 </button>
@@ -318,136 +225,68 @@ function MainHeader() {
           </form>
         </div>
 
-        {/* Sağ: Giriş/Çıkış + Admin + Sepet */}
-        <div style={{ ...rowCenter, gap: 24 }}>
-          <Link
-            href="/admin"
-            style={{ color: "#111827", textDecoration: "none", fontSize: 15, fontWeight: 600 }}
-          >
-            Admin
+        {/* Sağ: İkonlar */}
+        <div className="flex items-center gap-2 md:gap-5">
+          <Link href="/admin" className="hidden lg:block text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest">
+            PANEL
           </Link>
+
+          <div className="h-8 w-px bg-gray-100 hidden lg:block" />
 
           {hasToken ? (
             <button
               onClick={handleLogout}
-              style={{
-                color: "#111827",
-                textDecoration: "none",
-                fontSize: 15,
-                display: "flex",
-                flexDirection: "column",
-                lineHeight: 1.1,
-                alignItems: "flex-start",
-                background: "transparent",
-                border: "1px solid #e5e7eb",
-                padding: "8px 10px",
-                borderRadius: 8,
-                cursor: "pointer",
-              }}
-              title="Oturumu kapat"
+              className="flex items-center gap-2 group px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors"
             >
-              <span style={{ color: "#6b7280", fontSize: 13, marginBottom: 2 }}>Merhaba</span>
-              <span style={{ fontWeight: 600 }}>Çıkış Yap</span>
+              <div className="text-right hidden sm:block">
+                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Hesap</div>
+                <div className="text-xs font-bold">Çıkış Yap</div>
+              </div>
+              <LogOut size={20} className="text-gray-400 group-hover:text-black" />
             </button>
           ) : (
             <Link
               href="/login"
-              style={{
-                color: "#111827",
-                textDecoration: "none",
-                fontSize: 15,
-                display: "flex",
-                flexDirection: "column",
-                lineHeight: 1.1,
-                alignItems: "flex-start",
-              }}
+              className="flex items-center gap-2 group px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors"
             >
-              <span style={{ color: "#6b7280", fontSize: 13, marginBottom: 2 }}>Merhaba</span>
-              <span style={{ fontWeight: 600 }}>Giriş Yap</span>
+              <div className="text-right hidden sm:block">
+                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Merhaba</div>
+                <div className="text-xs font-bold">Giriş Yap</div>
+              </div>
+              <User size={20} className="text-gray-400 group-hover:text-black" />
             </Link>
           )}
 
-          <Link href="/cart" style={{ position: "relative", color: "#111827", textDecoration: "none", fontSize: 15 }}>
-            Sepet
-            <span
-              style={{
-                position: "absolute",
-                top: -10,
-                right: -14,
-                background: "#ef4444",
-                color: "#ffffff",
-                borderRadius: 999,
-                fontSize: 11,
-                lineHeight: 1,
-                padding: "4px 6px",
-              }}
-            >
+          <Link href="/cart" className="relative p-2.5 rounded-xl bg-gray-900 text-white hover:bg-black transition-all shadow-lg shadow-gray-200 hover:scale-105 active:scale-95">
+            <ShoppingCart size={20} />
+            <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center bg-blue-600 text-[10px] font-bold rounded-full border-2 border-white">
               {typeof count === "number" ? count : 0}
             </span>
           </Link>
+          
+          <button className="md:hidden p-2 text-gray-900">
+            <Menu size={24} />
+          </button>
         </div>
       </div>
 
-      {/* LOGO MODAL */}
+      {/* LOGO MODAL Overlay */}
       {showLogo && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Logo önizleme"
+          className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300"
           onClick={() => setShowLogo(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.85)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px",
-          }}
         >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowLogo(false);
-            }}
-            aria-label="Kapat"
-            style={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              width: 40,
-              height: 40,
-              borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.35)",
-              background: "rgba(0,0,0,0.25)",
-              color: "#ffffff",
-              cursor: "pointer",
-              fontSize: 24,
-              lineHeight: 1,
-            }}
-          >
-            ×
+          <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors">
+            <X size={48} strokeWidth={1} />
           </button>
-
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: "92vw", maxHeight: "86vh" }}>
-            <Image
-              src="/LOGO.png"
-              alt="ÜLGEN Paslanmaz logo büyük"
-              width={1400}
-              height={800}
-              priority
-              style={{
-                width: "100%",
-                height: "auto",
-                objectFit: "contain",
-                display: "block",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
-                borderRadius: 12,
-                background: "#111111",
-                padding: 16,
-              }}
-            />
+          <div className="max-w-4xl w-full" onClick={e => e.stopPropagation()}>
+             <Image
+               src="/LOGO.png"
+               alt="Büyük Logo"
+               width={1200}
+               height={600}
+               className="w-full h-auto object-contain drop-shadow-2xl"
+             />
           </div>
         </div>
       )}
@@ -459,32 +298,27 @@ function MainHeader() {
 function MainNav() {
   const items = [
     { href: "/", label: "ANA SAYFA" },
-    { href: "/products?cat=bicaklar", label: "BIÇAKLAR ›" },
+    { href: "/products?cat=bicaklar", label: "BIÇAKLAR" },
     { href: "/products?cat=bicak-seti", label: "BIÇAK SETİ" },
     { href: "/products?cat=sef-bicagi", label: "ŞEF BIÇAĞI" },
     { href: "/products?cat=outdoor", label: "OUTDOOR" },
-    { href: "/products?cat=kasap", label: "KASAP ›" },
+    { href: "/products?cat=kasap", label: "KASAP" },
     { href: "/products?cat=satirlar", label: "SATIRLAR" },
-    { href: "/products?cat=bileyici-masat", label: "BİLEYİCİ & MASATLAR" },
+    { href: "/products?cat=bileyici-masat", label: "BİLEYİCİ & MASAT" },
   ];
+
   return (
-    <nav style={{ width: "100%", background: "#000000", color: "#ffffff" }}>
-      <div style={{ ...container }}>
-        <ul
-          style={{
-            ...rowCenter,
-            gap: 32,
-            padding: "12px 0",
-            listStyle: "none",
-            margin: 0,
-            overflowX: "auto",
-            whiteSpace: "nowrap",
-          }}
-        >
+    <nav className="w-full bg-white border-b border-gray-100 overflow-x-auto no-scrollbar">
+      <div className="max-w-7xl mx-auto px-4">
+        <ul className="flex items-center gap-8 py-3 whitespace-nowrap">
           {items.map((it) => (
             <li key={it.href}>
-              <Link href={it.href} style={{ color: "#ffffff", textDecoration: "none", fontWeight: 600, fontSize: 15 }}>
+              <Link
+                href={it.href}
+                className="text-[11px] font-bold text-gray-500 hover:text-black tracking-[0.15em] transition-colors flex items-center gap-1 group"
+              >
                 {it.label}
+                {it.label.includes(">") || it.href.includes("cat") ? <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform opacity-30" /> : null}
               </Link>
             </li>
           ))}
@@ -497,16 +331,7 @@ function MainNav() {
 /* ---- Dışa Açık Header ---- */
 export default function Header() {
   return (
-    <header
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        width: "100%",
-        boxShadow: "0 1px 2px rgba(0,0,0,.06)",
-        background: "#ffffff",
-      }}
-    >
+    <header className="sticky top-0 z-50 w-full shadow-sm">
       <AnnouncementBar />
       <TopInfoRow />
       <MainHeader />
