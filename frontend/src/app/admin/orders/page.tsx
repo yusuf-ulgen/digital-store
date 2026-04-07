@@ -8,6 +8,8 @@ import StatusBadge from "@/components/admin/StatusBadge";
 // Firebase importları
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { ORDER_STATUS_LABELS } from "@/lib/constants";
+
 
 // Veri tipi (Order)
 type Order = {
@@ -127,7 +129,8 @@ export default function OrdersPage() {
               key: "status",
               header: "Durum",
               className: "w-[140px]",
-              render: (r) => <StatusBadge status={r.status || "Pending"} />,
+              render: (r) => <StatusBadge status={r.status || "Pending"} label={r.status ? ORDER_STATUS_LABELS[r.status] : "Bekliyor"} />,
+
             },
             {
               key: "createdAt",

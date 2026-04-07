@@ -29,22 +29,12 @@ builder.Services.AddControllers();
 builder.Services.AddSingleton<IProductStore, InMemoryProductStore>();
 builder.Services.AddSingleton<ICartService, InMemoryCartService>();
 builder.Services.AddSingleton<IOrderService, FirebaseOrderService>();
-
-// YENİ EKLENECEK SATIR BU:
 builder.Services.AddSingleton<IUserDirectory, FirebaseUserDirectory>();
-
 builder.Services.AddSingleton<IPaymentService, FakePaymentService>();
-// YENİ HALİ:
-builder.Services.AddSingleton<IOrderService, FirebaseOrderService>();
-builder.Services.AddSingleton<IPaymentService, FakePaymentService>();
-// Event logger — tam nitelikli
-builder.Services.AddSingleton<
-    ECom.Api.Services.Observability.IEventLogger,
-    ECom.Api.Services.Observability.InMemoryEventLogger>();
-// State machine servisi
+builder.Services.AddSingleton<ECom.Api.Services.Observability.IEventLogger, ECom.Api.Services.Observability.InMemoryEventLogger>();
 builder.Services.AddScoped<IOrderStateService, OrderStateService>();
-// Stok (Gerçek Firestore Entegrasyonu)
 builder.Services.AddScoped<IInventoryService, FirestoreInventoryService>();
+
 
 /* ---------- Firebase Admin & Firestore ---------- */
 var projectId = builder.Configuration["Firebase:ProjectId"]
@@ -146,13 +136,22 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 
-app.MapPost("/api/debug/set-admin-role", async (string uid) =>
+app.MapPost("/api/debug/set-admin-role", async (string uid, HttpRequest req, IConfiguration config) =>
 {
+    var secretKey = config["ADMIN_SECRET_KEY"] ?? "ulgen-dev-secret-key";
+    var providedKey = req.Headers["x-admin-key"].ToString();
+
+    if (app.Environment.IsProduction() && providedKey != secretKey)
+    {
+        return Results.Unauthorized();
+    }
+
     await FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(uid,
         new Dictionary<string, object> { ["role"] = "Admin" });
 
     return Results.Ok(new { uid, role = "Admin" });
 });
+
 
 /* ---------- Admin bootstrap (ENV: ADMIN_EMAIL) ---------- */
 var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");

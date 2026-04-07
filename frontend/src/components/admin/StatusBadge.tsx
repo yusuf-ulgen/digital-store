@@ -1,6 +1,9 @@
 "use client";
 
-type Props = { status: string };
+type Props = { 
+  status: string;
+  label?: string;
+};
 
 const map: Record<string, string> = {
   Created: "bg-stone-200 text-stone-800",
@@ -9,14 +12,15 @@ const map: Record<string, string> = {
   Shipped: "bg-cyan-100 text-cyan-800",
   Delivered: "bg-green-100 text-green-800",
   Refunded: "bg-purple-100 text-purple-800",
+  Cancelled: "bg-rose-100 text-rose-800",
   Canceled: "bg-rose-100 text-rose-800",
 };
 
-export default function StatusBadge({ status }: Props) {
+export default function StatusBadge({ status, label }: Props) {
   const cls = map[status] ?? "bg-stone-100 text-stone-700";
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
-      {status}
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${cls}`}>
+      {label || status}
     </span>
   );
 }

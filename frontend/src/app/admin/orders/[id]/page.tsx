@@ -7,6 +7,8 @@ import StatusBadge from "@/components/admin/StatusBadge";
 // Firebase
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { ORDER_STATUS_OPTIONS, ORDER_STATUS_LABELS } from "@/lib/constants";
+
 
 // Veri Tipi
 type OrderDetail = {
@@ -21,7 +23,8 @@ type OrderDetail = {
   history?: any[]; // Geçmiş olaylar
 };
 
-const STATUS_OPTIONS = ["Created", "Paid", "Packed", "Shipped", "Delivered", "Canceled", "Refunded"];
+// Veriye bağlı tipler...
+
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -106,7 +109,8 @@ export default function OrderDetailPage() {
         </div>
         
         <div className="flex items-center gap-3">
-            <StatusBadge status={order.status || "Unknown"} />
+            <StatusBadge status={order.status || "Unknown"} label={order.status ? ORDER_STATUS_LABELS[order.status] : "Bilinmiyor"} />
+
             
             <select 
                 className="border rounded p-2 text-sm"
@@ -117,9 +121,10 @@ export default function OrderDetailPage() {
                 }}
             >
                 <option value="" disabled>Durumu Değiştir...</option>
-                {STATUS_OPTIONS.map(s => (
-                    <option key={s} value={s}>{s}</option>
+                {ORDER_STATUS_OPTIONS.map(s => (
+                    <option key={s} value={s}>{ORDER_STATUS_LABELS[s] || s}</option>
                 ))}
+
             </select>
         </div>
       </div>

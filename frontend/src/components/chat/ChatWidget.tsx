@@ -1,20 +1,15 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 const generateId = () => Math.random().toString(36).substring(7);
 
 export default function ChatWidget() {
-  // -----------------------------------------------------------------------
-  // 1. ADIM: TÜM HOOK'LAR BURADA TANIMLANMAK ZORUNDA (Sıralama Bozulamaz)
-  // -----------------------------------------------------------------------
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const {
     messages,
@@ -22,18 +17,15 @@ export default function ChatWidget() {
     setMessages,
     status,
   } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-    }),
+    api: '/api/chat',
     onError: (e: unknown) => console.error('Chat error:', e),
-  } as any) as any;
+  });
 
   const [localInput, setLocalInput] = useState('');
   const isLoading = status === 'submitted' || status === 'streaming';
   const [hasGreeted, setHasGreeted] = useState(false);
 
   // Ayarlar
-  const isProductsPage = pathname === '/products';
   const defaultSize = { width: 320, height: 380 };
   const [size, setSize] = useState(defaultSize);
   const minSize = defaultSize;
@@ -61,7 +53,6 @@ export default function ChatWidget() {
           id: generateId(),
           role: 'assistant',
           content: text,
-          parts: [{ type: 'text', text }],
         } as any;
 
         setMessages([greetingMessage]);
@@ -79,28 +70,23 @@ export default function ChatWidget() {
 
     if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
       lastMessage.toolInvocations.forEach((toolInvocation: any) => {
-        
-        // Kategori Yönlendirmesi
+        // Redirection tools
         if (toolInvocation.toolName === 'goToCategoryPage') {
-          const args = toolInvocation.args;
-          const slug = args.categorySlug || args.slug;
+          const slug = toolInvocation.args.categorySlug;
           if (slug) {
-             router.push(`/products?cat=${slug}`);
+            router.push(`/products?cat=${slug}`);
           }
         }
 
-        // Ürün Yönlendirmesi
         if (toolInvocation.toolName === 'goToProductPage') {
-          const args = toolInvocation.args;
-          const pid = args.id || args.productId;
+          const pid = toolInvocation.args.productId;
           if (pid) {
-             router.push(`/products/${pid}`);
+            router.push(`/products/${pid}`);
           }
         }
       });
     }
   }, [messages, router]);
-
 
   // --- Resize Mantığı ---
   function handleResizeMouseDown(e: React.MouseEvent<HTMLDivElement>) {
@@ -138,37 +124,9 @@ export default function ChatWidget() {
     };
   }, [isResizing, maxSize, minSize]);
 
-  // --- Mesaj Gönderme ---
   const handleSend = async () => {
     const value = localInput.trim();
     if (!value || isLoading) return;
-    
-    // AI ile çakışan manuel yönlendirmeleri kaldırdım.
-    // Artık kararı tamamen AI (route.ts) verecek.
-
-    const lower = value.toLocaleLowerCase('tr');
-
-    // Filtreleme (Frontend tarafında kalabilir)
-    if (isProductsPage) {
-      const params = new URLSearchParams(searchParams.toString());
-      let changed = false;
-      if (lower.includes('stok') && (lower.includes('olan') || lower.includes('var'))) {
-        params.set('stokta', 'stokta');
-        changed = true;
-      }
-      if (lower.includes('en ucuz') || lower.includes('ucuzdan')) {
-        params.set('sirala', 'fiyat-artan');
-        changed = true;
-      }
-      if (lower.includes('en pahalı') || lower.includes('pahalıdan')) {
-        params.set('sirala', 'fiyat-azalan');
-        changed = true;
-      }
-      if (changed) {
-        router.push(`/products?${params.toString()}`);
-      }
-    }
-
     await sendMessage({ text: value });
     setLocalInput('');
   };
@@ -180,18 +138,10 @@ export default function ChatWidget() {
     }
   };
 
-  // -----------------------------------------------------------------------
-  // 2. ADIM: ADMIN KONTROLÜ BURADA YAPILIR (Hook'lardan Sonra)
-  // -----------------------------------------------------------------------
-  // Eğer url /admin ile başlıyorsa widget'ı render etme (null döndür).
-  // Bu, React kurallarını bozmadan botu gizler.
   if (pathname?.startsWith('/admin')) {
     return null;
   }
 
-  // -----------------------------------------------------------------------
-  // 3. ADIM: ARAYÜZ (HTML)
-  // -----------------------------------------------------------------------
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {!isOpen && (
@@ -237,6 +187,8 @@ export default function ChatWidget() {
                 m.content ??
                 m.parts?.map((p: any) => (p.type === 'text' ? p.text : '')).join('') ??
                 '';
+
+              if (!text && !m.toolInvocations) return null;
 
               return (
                 <div

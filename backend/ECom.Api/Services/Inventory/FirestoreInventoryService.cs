@@ -28,7 +28,7 @@ public sealed class FirestoreInventoryService : IInventoryService
 
         foreach (var item in order.Items)
         {
-            await UpdateStockAsync(item.ProductId, -item.Quantity, ct);
+            await UpdateStockAsync(item.ProductId, -item.Qty, ct);
         }
     }
 
@@ -39,7 +39,7 @@ public sealed class FirestoreInventoryService : IInventoryService
 
         foreach (var item in order.Items)
         {
-            await UpdateStockAsync(item.ProductId, item.Quantity, ct);
+            await UpdateStockAsync(item.ProductId, item.Qty, ct);
         }
     }
 
@@ -64,7 +64,6 @@ public sealed class FirestoreInventoryService : IInventoryService
         }
         catch (Exception ex)
         {
-            // Log error or handle gracefully
             Console.WriteLine($"[Inventory] Error updating stock for {productId}: {ex.Message}");
         }
     }

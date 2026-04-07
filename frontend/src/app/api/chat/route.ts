@@ -1,6 +1,7 @@
 import { google } from '@ai-sdk/google';
-import { streamText, UIMessage, convertToModelMessages } from 'ai';
+import { streamText, UIMessage, convertToModelMessages, tool } from 'ai';
 import { ALL_PRODUCTS } from '@/lib/mock-data';
+import { z } from 'zod';
 
 export const maxDuration = 30;
 
@@ -9,11 +10,11 @@ export async function POST(req: Request) {
 
   // 1. Ürün verisini metne dönüştür (Context oluşturma)
   const productContext = ALL_PRODUCTS.map(p => 
-    `- ${p.title} (${p.category}): ${p.price} TL. Stok: ${p.stock > 0 ? 'Var ('+p.stock+')' : 'YOK'}.`
+    `- ${p.title} (${p.category}): ${p.price} TL. Stok: ${p.stock > 0 ? 'Var ('+p.stock+')' : 'YOK'}. ID: ${p.id}`
   ).join('\n');
 
   const result = streamText({
-    model: google('gemini-2.5-flash'),
+    model: google('gemini-1.5-flash'),
 
     system: `
       Sen Ülgen Paslanmaz'ın (Geleneksel Sürmene Bıçakları üreticisi) resmi yapay zeka asistanısın.
@@ -23,25 +24,46 @@ export async function POST(req: Request) {
       - Profesyonel, güvenilir, yardımsever ve hafifçe geleneksel (Sürmene ustalığına vurgu yapan).
       - Müşterilere saygılı, çözüm odaklı bir dille hitap et.
       
-      NAVİGASYON VE YÖNLENDİRME (Kullanıcıya bu linkleri ver):
-      - Tüm Ürünler: /products
-      - Meyve Bıçakları: /products?cat=meyve
-      - Kasap Bıçakları: /products?cat=kasap
-      - Bıçak Setleri: /products?cat=bicak-seti
-      - Bileyiciler & Masatlar: /products?cat=bileyici-masat
-      - Sipariş Takibi: /profile sayfasındaki "Siparişlerim" sekmesi.
-      - İletişim: destek@ulgenpaslanmaz.com veya 0 555 555 55 55.
+      YÖNLENDİRME (Tools):
+      - Eğer kullanıcı belirli bir kategoriyi görmek istiyorsa 'goToCategoryPage' toolunu kullan.
+      - Eğer kullanıcı spesifik bir ürüne gitmek istiyorsa 'goToProductPage' toolunu kullan.
+      
+      NAVİGASYON VE KATEGORİ SLUGLARI:
+      - Bıçaklar: cat=bicaklar
+      - Kasap Bıçakları: cat=kasap
+      - Bıçak Setleri: cat=bicak-seti
+      - Bileyiciler & Masatlar: cat=bileyici-masatlar
+      - Şef Bıçakları: cat=sef-bicagi
+      - Outdoor Bıçaklar: cat=outdoor
+      - Satırlar: cat=satirlar
+
 
       ÜRÜN LİSTESİ:
       ${productContext}
 
       KURALLAR:
-      1. Yanıtlarını kısa, öz ve Markdown formatında ver. Linkleri yukarıdaki navigasyon rehberine göre oluştur.
-      2. Stokta olmayan (Stok: YOK) ürünler için "Maalesef şu an stoklarımızda bulunmuyor ama benzer ürünlerimize bakabilirsiniz" de.
-      3. Bıçak bakımı sorulursa: "Bulaşık makinesinde yıkamamanızı, elde yıkayıp kurularsanız ömürlük olacağını" belirt.
+      1. Yanıtlarını kısa, öz ve Markdown formatında ver. 
+      2. Kullanıcıyı bir sayfaya yönlendirmeden önce mutlaka sorusuna cevap ver. 
+      3. Örneğin; "Tabii, kasap bıçaklarımız Sürmene çeliğinden üretilir. Sizi hemen ilgili sayfaya yönlendiriyorum." de ve ardından 'goToCategoryPage' toolunu çağır.
+      4. Bıçak bakımı sorulursa: "Bulaşık makinesinde yıkamamanızı, elde yıkayıp kurularsanız ömürlük olacağını" belirt.
     `,
 
     messages: convertToModelMessages(messages),
+    
+    tools: {
+      goToCategoryPage: tool({
+        description: 'Kullanıcıyı belirli bir ürün kategorisi sayfasına yönlendirir.',
+        parameters: z.object({
+          categorySlug: z.string().describe('Yönlendirilecek kategori slugı (örn: kasap, sef-bicagi, meyve)'),
+        }),
+      }),
+      goToProductPage: tool({
+        description: 'Kullanıcıyı belirli bir ürün detay sayfasına yönlendirir.',
+        parameters: z.object({
+          productId: z.string().describe('Yönlendirilecek ürünün ID numarası.'),
+        }),
+      }),
+    },
   });
 
   return result.toUIMessageStreamResponse();

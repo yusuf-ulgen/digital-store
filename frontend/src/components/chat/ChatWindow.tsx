@@ -6,7 +6,6 @@ import {
   useEffect,
 } from "react";
 import { useChat } from "@ai-sdk/react";
-import { TextStreamChatTransport } from "ai";
 import { PaperAirplaneIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 
@@ -24,9 +23,7 @@ export default function ChatWindow({ onClose }: Props) {
   const router = useRouter();
 
   const { messages, status, sendMessage } = useChat({
-    transport: new TextStreamChatTransport({
-      api: "/api/chat",
-    }),
+    api: "/api/chat",
   });
 
   const isLoading = status === "submitted" || status === "streaming";
@@ -39,6 +36,32 @@ export default function ChatWindow({ onClose }: Props) {
     }
   }, [messages, view]);
 
+  // --- AI Yönlendirme Dinleyicisi ---
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+
+    if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
+      lastMessage.toolInvocations.forEach((toolInvocation: any) => {
+        // AI SDK v4/v5'te toolInvocation yapısı:
+        // categorySlug tool'dan geliyorsa:
+        if (toolInvocation.toolName === 'goToCategoryPage') {
+          const slug = toolInvocation.args.categorySlug;
+          if (slug) {
+            router.push(`/products?cat=${slug}`);
+          }
+        }
+
+        if (toolInvocation.toolName === 'goToProductPage') {
+          const pid = toolInvocation.args.productId;
+          if (pid) {
+            router.push(`/products/${pid}`);
+          }
+        }
+      });
+    }
+  }, [messages, router]);
+
   const handleStartChat = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!userData.name || !userData.email) return;
@@ -46,49 +69,26 @@ export default function ChatWindow({ onClose }: Props) {
   };
 
   const handleSendMessage = async (e: React.MouseEvent | React.KeyboardEvent) => {
-  e.preventDefault();
-  const trimmed = input.trim();
-  if (!trimmed) return;
+    e.preventDefault();
+    const trimmed = input.trim();
+    if (!trimmed) return;
 
-  const lower = trimmed.toLocaleLowerCase('tr');
+    // NOT: Eski anahtar kelime bazlı yönlendirme kaldırıldı.
+    // Redirection artık AI (tools) tarafından kontrol ediliyor.
 
-  // 1) Şef bıçakları
-  if (
-    lower.includes('şef bıç') ||
-    lower.includes('sef bic')
-  ) {
-    router.push('/products?cat=sef-bicagi');
-  }
-  // 2) Kasap / satır
-  else if (
-    lower.includes('kasap') ||
-    lower.includes('satır') ||
-    lower.includes('satir')
-  ) {
-    router.push('/products?cat=kasap');
-  }
-  // 3) Masat / bileyici
-  else if (
-    lower.includes('masat') ||
-    lower.includes('bileyici') ||
-    lower.includes('bileyle')
-  ) {
-    router.push('/products?cat=bileyici-masatlar');
-  }
+    await sendMessage(
+      { text: trimmed },
+      {
+        body: {
+          userName: userData.name,
+        },
+      }
+    );
 
-  await sendMessage(
-    { text: trimmed },
-    {
-      body: {
-        userName: userData.name,
-      },
-    }
-  );
+    setInput('');
+  };
 
-  setInput('');
-};
-
-  // Mesaj içeriğini düzgün render eden fonksiyon
+  // Mesaj içeriğini render eden fonksiyon
   const renderMessageContent = (message: any) => {
     if (typeof message.content === "string") {
       return message.content;

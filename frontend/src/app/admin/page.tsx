@@ -9,16 +9,8 @@ import {
 } from "firebase/firestore";
 // Mock veriyi import ediyoruz
 import { ALL_PRODUCTS } from "@/lib/mock-data";
+import { CATEGORIES } from "@/lib/constants";
 
-const CATEGORIES = [
-  { label: "Şef Bıçağı", value: "sef-bicagi" },
-  { label: "Outdoor", value: "outdoor" },
-  { label: "Bıçaklar", value: "bicaklar" },
-  { label: "Bıçak Seti", value: "bicak-seti" },
-  { label: "Kasap", value: "kasap" },
-  { label: "Satırlar", value: "satirlar" },
-  { label: "Bileyici & Masatlar", value: "bileyici-masatlar" },
-];
 
 type Item = { id: string; title: string; price: number; stock: number; imageUrl: string; category?: string };
 
@@ -52,7 +44,7 @@ export default function AdminPage() {
 
   // --- MOCK VERİLERİ YÜKLEME FONKSİYONU ---
   async function seedDatabase() {
-    if (!confirm("Dikkat! Bu işlem mock-data.ts içindeki tüm ürünleri veritabanına ekleyecek. Devam edilsin mi?")) return;
+    if (!confirm("Dikkat! Bu işlem mock-data.ts içindeki tüm ürünleri veritabanına ekleyecek. Mevcut ürünler ID bazlı güncellenebilir. Devam edilsin mi?")) return;
     setLoading(true);
     try {
       const batch = writeBatch(db); // Toplu işlem başlatıyoruz
@@ -66,14 +58,14 @@ export default function AdminPage() {
           stock: product.stock,
           imageUrl: product.imageUrl || "",
           category: product.category || "diger",
-          description: "Otomatik aktarılan ürün açıklaması.", // Varsayılan açıklama
+          description: product.shortDescription || "Otomatik aktarılan ürün açıklaması.", 
           createdAt: serverTimestamp(),
           active: true
-        });
+        }, { merge: true }); // 'merge: true' sayesinde varsa üzerine yazar, yoksa oluşturur.
       });
 
       await batch.commit(); // Hepsini tek seferde yaz
-      alert("Başarılı! Tüm ürünler veritabanına yüklendi.");
+      alert("Başarılı! Tüm ürünler veritabanına yüklendi ve güncellendi.");
     } catch (error) {
       console.error("Yükleme hatası:", error);
       alert("Bir hata oluştu.");
@@ -81,6 +73,7 @@ export default function AdminPage() {
       setLoading(false);
     }
   }
+
 
   async function addProduct() {
     await addDoc(collection(db, "products"), {

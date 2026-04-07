@@ -66,7 +66,11 @@ public class FirebaseUserDirectory : IUserDirectory
         await _auth.SetCustomUserClaimsAsync(id, claims, ct);
     }
     
-    public Task SetRoleAsync(string id, string role, CancellationToken ct) => Task.CompletedTask;
+    public async Task SetRoleAsync(string id, string role, CancellationToken ct) 
+    {
+        await PushRoleClaimAsync(id, role, ct);
+    }
+
 
     private static UserRow FirebaseUserToUserRow(UserRecord user)
     {

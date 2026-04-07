@@ -8,6 +8,7 @@ import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { ShoppingCartIcon, MagnifyingGlassIcon, UserIcon } from "@heroicons/react/24/outline";
 import { useCart } from "@/lib/cart"; 
+import { CATEGORIES } from "@/lib/constants";
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -138,16 +139,17 @@ export default function ClientShell({ children }: { children: React.ReactNode })
         <div className="mx-auto max-w-7xl px-4">
           <ul className="flex items-center gap-8 py-3.5 whitespace-nowrap">
             <li><Link href="/" className="hover:text-orange-500 transition-colors">ANA SAYFA</Link></li>
-            <li><Link href="/products?cat=bicaklar" className="hover:text-orange-500 transition-colors">BIÇAKLAR</Link></li>
-            <li><Link href="/products?cat=bicak-seti" className="hover:text-orange-500 transition-colors">BIÇAK SETİ</Link></li>
-            <li><Link href="/products?cat=sef-bicagi" className="hover:text-orange-500 transition-colors">ŞEF BIÇAĞI</Link></li>
-            <li><Link href="/products?cat=outdoor" className="hover:text-orange-500 transition-colors">OUTDOOR</Link></li>
-            <li><Link href="/products?cat=kasap" className="hover:text-orange-500 transition-colors">KASAP</Link></li>
-            <li><Link href="/products?cat=satirlar" className="hover:text-orange-500 transition-colors">SATIRLAR</Link></li>
-            <li><Link href="/products?cat=bileyici-masatlar" className="hover:text-orange-500 transition-colors">BİLEYİCİ & MASATLAR</Link></li>
+            {CATEGORIES.map((cat) => (
+              <li key={cat.value}>
+                <Link href={`/products?cat=${cat.value}`} className="hover:text-orange-500 transition-colors">
+                  {cat.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </nav>
+
 
       {/* --- SAYFA İÇERİĞİ --- */}
       <main className="flex-1 bg-stone-50">
