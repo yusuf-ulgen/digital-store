@@ -43,21 +43,13 @@ export default function AddToCartButton({
   return (
     <button
       type="button"
-      disabled={!canAddMore} // Stok bittiyse veya sepette limit dolduysa tıklanamaz
+      disabled={!canAddMore}
       onClick={handleClick}
-      style={{
-        marginTop: 8,
-        height: 44,
-        borderRadius: 12,
-        border: "1px solid #d6d3d1",
-        // Renk mantığı: Tıklanabilirse Siyah, değilse Gri
-        background: canAddMore ? "#111827" : "#9ca3af",
-        color: "#ffffff",
-        cursor: canAddMore ? "pointer" : "not-allowed",
-        fontWeight: 600,
-        width: "100%",
-        transition: "background 0.2s",
-      }}
+      className={`w-full h-10 mt-2 rounded-xl text-xs font-bold transition-all border ${
+        canAddMore
+          ? "bg-stone-950 text-white border-transparent hover:bg-stone-800 hover:shadow-lg active:scale-[0.98]"
+          : "bg-stone-100 text-stone-400 border-stone-200 cursor-not-allowed"
+      }`}
     >
       {buttonText}
     </button>

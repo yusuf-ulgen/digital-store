@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "5IJQ04eCrMg=",
+  "dgSpecHash": "yv1/+iod6O8=",
   "success": true,
-  "projectFilePath": "C:\\Users\\YUSUF\\Desktop\\bitirmeProjesi\\backend\\ECom.Api\\ECom.Api.csproj",
+  "projectFilePath": "C:\\Users\\YUSUF\\Desktop\\BitenProjeler\\digitalStore\\backend\\ECom.Api\\ECom.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\YUSUF\\.nuget\\packages\\firebaseadmin\\3.4.0\\firebaseadmin.3.4.0.nupkg.sha512",
     "C:\\Users\\YUSUF\\.nuget\\packages\\google.api.commonprotos\\2.16.0\\google.api.commonprotos.2.16.0.nupkg.sha512",

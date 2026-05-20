@@ -1,29 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 @import "tailwindcss";
 
-/* kendi global stillerin aşağıda */
-
-/* Tema: Premium Şehirli & Taş Tonları */
+/* ========================================
+   TEMA: Siyah-Beyaz Premium Palet
+   ======================================== */
 :root {
-  --bg: #F9FAFB;   /* Daha temiz bir zemin */
-  --ink: #111827;  /* Daha derin metin rengi */
-  --muted: #4B5563; /* Okunabilirliği yüksek ikincil metin */
+  --bg: #FFFFFF;
+  --bg-subtle: #F8F8F8;
+  --ink: #0a0a0a;
+  --ink-secondary: #374151;
+  --ink-muted: #6B7280;
   --card: #FFFFFF;
-  --brand: #2563EB; /* Daha canlı bir mavi */
-  --brand-dark: #1E40AF;
+  --card-border: #E5E7EB;
+  --brand: #0a0a0a;          /* Ana renk: Siyah */
+  --brand-hover: #1a1a1a;
+  --brand-light: #F3F4F6;    /* Açık ton */
+  --accent: #171717;
+  --success: #059669;
+  --danger: #DC2626;
 
-  /* Footer paleti */
-  --footer-bg: #111827;
+  /* Footer */
+  --footer-bg: #0a0a0a;
   --footer-border: #1F2937;
   --footer-ink: #F9FAFB;
 }
 
-html, body { 
-  height: 100%; 
+html, body {
+  height: 100%;
   scroll-behavior: smooth;
 }
 
@@ -31,87 +38,139 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, .font-display {
+h1, h2, h3, h4, h5, .font-display {
   font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.025em;
 }
 
-/* ---- yardımcı sınıflar: düz CSS (apply yok) ---- */
-.container-tight {
-  max-width: 72rem;           /* = max-w-6xl */
-  margin-left: auto; 
-  margin-right: auto;         /* = mx-auto */
-  padding-left: 1rem; 
-  padding-right: 1rem;        /* = px-4 */
+/* ---- Buton Stilleri ---- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--brand);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
 }
+.btn-primary:hover {
+  background: var(--brand-hover);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.625rem 1.25rem;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid var(--ink);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  text-decoration: none;
+}
+.btn-outline:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ---- Kartlar ---- */
 .card {
-  background: #fff; 
-  border-radius: 1rem;        /* ~ rounded-2xl */
-  border: 1px solid #e7e5e4;  /* ~ border-stone-200 */
-  box-shadow: 0 1px 2px rgba(0,0,0,.04);  /* ~ shadow-sm */
+  background: var(--card);
+  border-radius: 1rem;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-.btn {
-  display: inline-flex; 
-  align-items: center; 
-  gap: .5rem;
-  border-radius: .75rem; 
-  padding: .5rem 1rem; 
-  font-weight: 500;
-}
-.btn-primary { color: #fff; background: var(--brand); }
-.link-muted { color: #57534e; text-decoration: underline; }
-.link-muted:hover { color: #1f2937; }
 
-/* ------ Footer (siyahımsı gri) ------ */
+/* ---- Footer ---- */
 .footer-dark { background: var(--footer-bg); color: var(--footer-ink); }
 .footer-dark a:any-link { color: var(--footer-ink); text-decoration: none; }
 .footer-dark a:any-link:hover { text-decoration: underline; }
-.footer-divider { height:1px; background: var(--footer-border); }
+.footer-divider { height: 1px; background: var(--footer-border); }
 
-/* Sosyal küçük butonlar */
+/* ---- Sosyal Butonlar ---- */
 .social-dot {
-  width:36px; height:36px; 
-  border-radius:9999px;
-  display:inline-flex; 
-  align-items:center; 
-  justify-content:center;
-  border:1px solid rgba(255,255,255,.18);
+  width: 36px; height: 36px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.18);
+  transition: background 0.2s;
 }
-.social-dot:hover { background: rgba(255,255,255,.08); }
+.social-dot:hover { background: rgba(255,255,255,0.08); }
 
-/* Home grid: 3 kolon (md ve üstü) */
-.home-grid {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 28px;
-}
-@media (min-width: 768px){
-  .home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-.home-card img{
-  width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:14px;
-  border:1px solid #e7e5e4;
-}
-.home-card { display:flex; flex-direction:column; gap:10px; }
-.price-line{ display:flex; gap:8px; align-items:baseline; }
-.price-old { color:#9ca3af; text-decoration:line-through; }
-.price-now { font-weight:700; font-size:1.125rem; }
-
-/* başlıklar */
-.section-head {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom: 12px;
+/* ---- Yardımcı Sınıflar ---- */
+.container-tight {
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
-/* --- header küçük yardımcılar --- */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Duyuru şeridi için opsiyonel kayan yazı */
+/* ---- Kategori Etiketi Rengi ---- */
+.category-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-muted);
+  opacity: 0.75;
+}
+.category-badge:hover { opacity: 1; }
+
+/* ---- Ürün Kartı ---- */
+.product-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  border: 1px solid #EBEBEB;
+  transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
+  overflow: hidden;
+}
+.product-card:hover {
+  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+  transform: translateY(-4px);
+  border-color: #D4D4D4;
+}
+
+/* ---- Fiyat ---- */
+.price-old {
+  color: #9CA3AF;
+  text-decoration: line-through;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.price-now {
+  font-weight: 800;
+  font-size: 1.125rem;
+  color: var(--ink);
+}
+
+/* ---- Duyuru Şeridi ---- */
 @keyframes slideLeft {
   0%   { transform: translate3d(0,0,0); }
   100% { transform: translate3d(-50%,0,0); }
@@ -124,3 +183,54 @@ h1, h2, h3, h4, .font-display {
 @media (prefers-reduced-motion: reduce) {
   .marquee { animation: none; }
 }
+
+/* ---- Filtre Sidebar ---- */
+.filter-section {
+  border-bottom: 1px solid #E5E7EB;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.filter-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  margin-bottom: 0.875rem;
+}
+.filter-radio {
+  accent-color: var(--ink);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+.filter-checkbox {
+  accent-color: var(--ink);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+/* ---- Animasyonlar ---- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+/* ---- Section Başlığı ---- */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+/* ---- Scrollbar özelleştirme ---- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F3F4F6; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }

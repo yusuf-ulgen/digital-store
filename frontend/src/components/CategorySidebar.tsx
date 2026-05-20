@@ -1,7 +1,15 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react'; // useEffect'e gerek kalmadı
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+const MOCK_BRANDS = [
+  "Ülgen Paslanmaz",
+  "Ocakoğlu",
+  "Sürbisa",
+  "Victorinox",
+  "F.Dick"
+];
 
 export default function CategorySidebar({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const router = useRouter();
@@ -10,42 +18,89 @@ export default function CategorySidebar({ searchParams }: { searchParams: { [key
   const [minFiyat, setMinFiyat] = useState(searchParams.minFiyat || '');
   const [maxFiyat, setMaxFiyat] = useState(searchParams.maxFiyat || '');
   const stokDurumu = searchParams.stokta || 'hepsi';
+  
+  // Markalar searchParams'tan alınabilir (birden çok marka seçilebilir)
+  const currentBrandsParam = searchParams.marka;
+  const initialBrands = Array.isArray(currentBrandsParam) 
+    ? currentBrandsParam 
+    : typeof currentBrandsParam === 'string' 
+      ? [currentBrandsParam] 
+      : [];
+      
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrands);
+
+  const applyFilters = (newBrands: string[], newStock: string, newMin: string, newMax: string) => {
+    const params = new URLSearchParams(searchParams as any);
+    
+    // Fiyat
+    if (newMin) params.set('minFiyat', String(newMin));
+    else params.delete('minFiyat');
+
+    if (newMax) params.set('maxFiyat', String(newMax));
+    else params.delete('maxFiyat');
+
+    // Stok
+    if (newStock === 'hepsi') params.delete('stokta');
+    else params.set('stokta', newStock);
+
+    // Markalar
+    params.delete('marka');
+    newBrands.forEach(b => params.append('marka', b));
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const handleFilterApply = (e: React.FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams(searchParams as any);
-    
-    if (minFiyat) params.set('minFiyat', String(minFiyat));
-    else params.delete('minFiyat');
-
-    if (maxFiyat) params.set('maxFiyat', String(maxFiyat));
-    else params.delete('maxFiyat');
-    
-    router.push(`${pathname}?${params.toString()}`);
+    applyFilters(selectedBrands, stokDurumu as string, minFiyat as string, maxFiyat as string);
   };
 
   const handleStokChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const params = new URLSearchParams(searchParams as any);
     const value = e.target.value;
-    
-    if (value === 'hepsi') params.delete('stokta');
-    else params.set('stokta', value);
-    
-    // Fiyatları da koru
-    if (minFiyat) params.set('minFiyat', String(minFiyat));
-    if (maxFiyat) params.set('maxFiyat', String(maxFiyat));
+    applyFilters(selectedBrands, value, minFiyat as string, maxFiyat as string);
+  };
 
-    router.push(`${pathname}?${params.toString()}`);
+  const handleBrandChange = (brand: string, isChecked: boolean) => {
+    const newBrands = isChecked 
+      ? [...selectedBrands, brand] 
+      : selectedBrands.filter(b => b !== brand);
+      
+    setSelectedBrands(newBrands);
+    // Marka seçilir seçilmez uygulayalım
+    applyFilters(newBrands, stokDurumu as string, minFiyat as string, maxFiyat as string);
   };
 
   return (
-    // İSTEK 2: Filtre formunu sola yaslamak için 'w-full'
-    <form onSubmit={handleFilterApply} className="w-full">
+    <form onSubmit={handleFilterApply} className="w-full space-y-6">
+      
+      {/* Marka Filtresi */}
+      <div className="filter-section">
+        <h3 className="filter-title">Marka / Üretici</h3>
+        <div className="space-y-3">
+          {MOCK_BRANDS.map(brand => (
+            <div key={brand} className="flex items-center group">
+              <input
+                id={`brand-${brand}`}
+                name="marka"
+                type="checkbox"
+                value={brand}
+                checked={selectedBrands.includes(brand)}
+                onChange={(e) => handleBrandChange(brand, e.target.checked)}
+                className="filter-checkbox border-stone-300 rounded-sm text-stone-900 focus:ring-stone-900"
+              />
+              <label htmlFor={`brand-${brand}`} className="ml-3 text-sm text-stone-600 group-hover:text-stone-900 cursor-pointer transition-colors">
+                {brand}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Stok Durumu Filtresi */}
-      <div className="border-b border-gray-200 pb-6">
-        <h3 className="mb-4 font-semibold text-gray-900">Stok Durumu</h3>
-        <div className="space-y-4">
-          <div className="flex items-center">
+      <div className="filter-section">
+        <h3 className="filter-title">Stok Durumu</h3>
+        <div className="space-y-3">
+          <div className="flex items-center group">
             <input
               id="stok-hepsi"
               name="stokta"
@@ -53,13 +108,13 @@ export default function CategorySidebar({ searchParams }: { searchParams: { [key
               value="hepsi"
               checked={stokDurumu === 'hepsi'}
               onChange={handleStokChange}
-              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="filter-radio border-stone-300 text-stone-900 focus:ring-stone-900"
             />
-            <label htmlFor="stok-hepsi" className="ml-3 text-sm text-gray-600">
-              Hepsi
+            <label htmlFor="stok-hepsi" className="ml-3 text-sm text-stone-600 group-hover:text-stone-900 cursor-pointer transition-colors">
+              Tümü
             </label>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center group">
             <input
               id="stok-var"
               name="stokta"
@@ -67,57 +122,42 @@ export default function CategorySidebar({ searchParams }: { searchParams: { [key
               value="stokta"
               checked={stokDurumu === 'stokta'}
               onChange={handleStokChange}
-              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="filter-radio border-stone-300 text-stone-900 focus:ring-stone-900"
             />
-            <label htmlFor="stok-var" className="ml-3 text-sm text-gray-600">
-              Stokta var
-            </label>
-          </div>
-          <div className="flex items-center">
-            <input
-              id="stok-yok"
-              name="stokta"
-              type="radio"
-              value="stokta-yok"
-              checked={stokDurumu === 'stokta-yok'}
-              onChange={handleStokChange}
-              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label htmlFor="stok-yok" className="ml-3 text-sm text-gray-600">
-              Stokta yok
+            <label htmlFor="stok-var" className="ml-3 text-sm text-stone-600 group-hover:text-stone-900 cursor-pointer transition-colors">
+              Stokta Var
             </label>
           </div>
         </div>
       </div>
 
-      {/* Fiyat Filtresi (İSTEK 2: Taşma Düzeltmesi) */}
-      <div className="border-b border-gray-200 py-6">
-        <h3 className="mb-4 font-semibold text-gray-900">Fiyat</h3>
-        {/* Inputları 'flex-1' ve 'min-w-0' ile esnek hale getir */}
+      {/* Fiyat Filtresi */}
+      <div className="filter-section border-b-0 pb-0 mb-0">
+        <h3 className="filter-title">Fiyat Aralığı</h3>
         <div className="flex items-center space-x-2">
           <input
             type="number"
             value={minFiyat}
             onChange={(e) => setMinFiyat(e.target.value)}
             placeholder="Min"
-            className="flex-1 rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 min-w-0"
+            className="flex-1 rounded-lg border border-stone-200 px-3 py-2 text-sm focus:border-stone-900 focus:ring-1 focus:ring-stone-900 min-w-0 outline-none transition-all"
             min="0"
           />
-          <span className="text-gray-500">–</span>
+          <span className="text-stone-400">–</span>
           <input
             type="number"
             value={maxFiyat}
             onChange={(e) => setMaxFiyat(e.target.value)}
             placeholder="Max"
-            className="flex-1 rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 min-w-0"
+            className="flex-1 rounded-lg border border-stone-200 px-3 py-2 text-sm focus:border-stone-900 focus:ring-1 focus:ring-stone-900 min-w-0 outline-none transition-all"
             min="0"
           />
         </div>
         <button
           type="submit"
-          className="mt-4 w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+          className="mt-4 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-stone-800 transition-colors"
         >
-          Uygula
+          Fiyatı Uygula
         </button>
       </div>
       

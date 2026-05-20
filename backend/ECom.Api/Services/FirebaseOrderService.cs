@@ -79,7 +79,7 @@ public class FirebaseOrderService : IOrderService
                 ProductId = i.ProductId,
                 Title = i.Title,
                 ImageUrl = i.ImageUrl,
-                UnitPrice = i.Price,
+                UnitPrice = i.UnitPrice,
                 Qty = i.Qty
             }).ToList()
         };

@@ -52,15 +52,56 @@ static void EnsureFirebaseApp(WebApplicationBuilder builder)
     if (FirebaseApp.DefaultInstance is not null) return;   // idempotent
 
     // Kimlik bilgisi yolu: config→ENV→default
-    var credPath =
-        builder.Configuration["FIREBASE_CREDENTIALS"]
-        ?? Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")
-        ?? "secrets/firebase-admin.json";
+    var credPath = builder.Configuration["FIREBASE_CREDENTIALS"] ?? FindFirebaseCredentials();
+
+    // Set the environment variable so Firestore SDK (ADC) can also find it
+    if (File.Exists(credPath))
+    {
+        Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+    }
 
     FirebaseApp.Create(new AppOptions
     {
         Credential = GoogleCredential.FromFile(credPath)
     });
+}
+
+static string FindFirebaseCredentials()
+{
+    var envPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+    if (!string.IsNullOrEmpty(envPath) && File.Exists(envPath))
+    {
+        return envPath;
+    }
+
+    var candidates = new[]
+    {
+        Path.Combine(AppContext.BaseDirectory, "secrets", "firebase-admin.json"),
+        Path.Combine(AppContext.BaseDirectory, "..", "secrets", "firebase-admin.json"),
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "secrets", "firebase-admin.json"),
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "secrets", "firebase-admin.json"),
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "secrets", "firebase-admin.json"),
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "secrets", "firebase-admin.json"),
+        Path.Combine(Environment.CurrentDirectory, "secrets", "firebase-admin.json"),
+        Path.Combine(Environment.CurrentDirectory, "..", "secrets", "firebase-admin.json"),
+        Path.Combine(Environment.CurrentDirectory, "..", "..", "secrets", "firebase-admin.json"),
+        "secrets/firebase-admin.json"
+    };
+
+    foreach (var candidate in candidates)
+    {
+        try
+        {
+            var fullPath = Path.GetFullPath(candidate);
+            if (File.Exists(fullPath))
+            {
+                return fullPath;
+            }
+        }
+        catch {}
+    }
+
+    return "secrets/firebase-admin.json"; // fallback
 }
 
 // Firestore (ADC ile) — prod/dev’de çalışır, testte Firestore’a ihtiyacın yoksa testlerde bu servisi mock’la

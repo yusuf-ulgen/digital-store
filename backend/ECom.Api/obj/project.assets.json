@@ -3079,11 +3079,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\YUSUF\\Desktop\\bitirmeProjesi\\backend\\ECom.Api\\ECom.Api.csproj",
+      "projectUniqueName": "C:\\Users\\YUSUF\\Desktop\\BitenProjeler\\digitalStore\\backend\\ECom.Api\\ECom.Api.csproj",
       "projectName": "ECom.Api",
-      "projectPath": "C:\\Users\\YUSUF\\Desktop\\bitirmeProjesi\\backend\\ECom.Api\\ECom.Api.csproj",
+      "projectPath": "C:\\Users\\YUSUF\\Desktop\\BitenProjeler\\digitalStore\\backend\\ECom.Api\\ECom.Api.csproj",
       "packagesPath": "C:\\Users\\YUSUF\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\YUSUF\\Desktop\\bitirmeProjesi\\backend\\ECom.Api\\obj\\",
+      "outputPath": "C:\\Users\\YUSUF\\Desktop\\BitenProjeler\\digitalStore\\backend\\ECom.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

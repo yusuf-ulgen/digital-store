@@ -194,64 +194,102 @@ export default async function ProductsPage({ searchParams }: CategoryPageProps) 
 
     pageTitle = categoryInfo.title;
     pageDescription = categoryInfo.description;
-    // Aramayı null gönderiyoruz, kategoriyi gönderiyoruz
     products = await getFilteredProducts(categorySlug, null, resolvedSearchParams);
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-screen">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb (Gezinti Yolu) */}
-        <div className="flex items-center space-x-2 py-4 text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-700">Ana Sayfa</Link>
+
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 py-3 text-xs text-stone-400 font-medium">
+          <Link href="/" className="hover:text-stone-700 transition-colors">Ana Sayfa</Link>
           <span>/</span>
-          <span className="font-medium text-gray-700">
-            {isSearchMode ? "Arama Sonuçları" : pageTitle}
-          </span>
+          <span className="text-stone-700">{isSearchMode ? "Arama Sonuçları" : pageTitle}</span>
         </div>
 
-        {/* Başlık + Sıralama */}
-        <div className="border-b border-gray-200 pb-6 pt-12 flex items-center justify-between gap-4 flex-wrap">
+        {/* Başlık + Sıralama + Mobil Filtre Butonu */}
+        <div className="py-4 sm:py-6 flex items-start sm:items-center justify-between gap-3 flex-wrap border-b border-stone-100">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-stone-950">
               {pageTitle}
             </h1>
-            <p className="mt-4 text-base text-gray-600">{pageDescription}</p>
+            <p className="mt-1 text-xs sm:text-sm text-stone-500 max-w-xl">{pageDescription}</p>
           </div>
-          <SortDropdown />
+          <div className="flex items-center gap-2">
+            {/* Mobil: Filtre Butonu */}
+            <label
+              htmlFor="mobile-filter-toggle"
+              className="flex lg:hidden items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 text-stone-700 font-semibold text-xs cursor-pointer hover:bg-stone-50 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M7 12h10M11 20h2" />
+              </svg>
+              Filtrele
+            </label>
+            <SortDropdown />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-x-8 gap-y-10 py-10 lg:grid-cols-4">
-          {/* Sidebar: Arama modunda bile filtreleri (fiyat/stok) kullanabilmek için sidebar kalabilir */}
-          <div className="hidden lg:block">
+        {/* Mobil Filtre Drawer (CSS checkbox trick) */}
+        <input type="checkbox" id="mobile-filter-toggle" className="peer hidden" />
+        {/* Overlay */}
+        <label
+          htmlFor="mobile-filter-toggle"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm hidden peer-checked:flex lg:hidden cursor-pointer"
+        />
+        {/* Drawer */}
+        <div className="fixed top-0 left-0 z-50 h-full w-[min(300px,85vw)] bg-white shadow-2xl transform -translate-x-full peer-checked:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col lg:hidden">
+          <div className="flex items-center justify-between px-4 py-4 border-b border-stone-100">
+            <span className="font-bold text-stone-950">Filtrele</span>
+            <label htmlFor="mobile-filter-toggle" className="p-2 rounded-lg hover:bg-stone-100 cursor-pointer transition-colors">
+              <svg className="w-5 h-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </label>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-4">
             <CategorySidebar searchParams={resolvedSearchParams} />
           </div>
+        </div>
+
+        {/* Ana İçerik: Sidebar + Ürünler */}
+        <div className="flex gap-8 py-6">
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block w-56 flex-shrink-0">
+            <div className="sticky top-24">
+              <CategorySidebar searchParams={resolvedSearchParams} />
+            </div>
+          </aside>
 
           {/* Ürün Listesi */}
-          <div className="lg:col-span-3">
+          <div className="flex-1 min-w-0">
             {products.length > 0 ? (
               <>
-                <div className="mb-4 text-sm text-gray-500">
-                  Toplam {products.length} ürün bulundu.
+                <div className="mb-3 text-xs text-stone-400 font-medium">
+                  Toplam <span className="font-bold text-stone-700">{products.length}</span> ürün bulundu.
                 </div>
-                <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center text-center text-gray-500 py-20 bg-gray-50 rounded-lg">
-                <p className="text-lg font-medium mb-2">Ürün Bulunamadı</p>
-                <p>
-                  {isSearchMode 
-                    ? `"${searchQuery}" ile eşleşen bir sonuç bulamadık.` 
+              <div className="flex flex-col items-center justify-center text-center text-stone-400 py-20 bg-stone-50 rounded-2xl">
+                <p className="text-base font-bold text-stone-600 mb-1">Ürün Bulunamadı</p>
+                <p className="text-sm mb-4">
+                  {isSearchMode
+                    ? `"${searchQuery}" ile eşleşen bir sonuç bulamadık.`
                     : "Bu kategoride şu an ürün bulunmamaktadır."}
                 </p>
                 {isSearchMode && (
-                   <Link href="/products" className="mt-4 text-indigo-600 underline">
-                     Tüm ürünleri gör
-                   </Link>
+                  <Link
+                    href="/products"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-stone-950 text-white text-sm font-semibold rounded-xl hover:bg-stone-800 transition-colors"
+                  >
+                    Tüm Ürünleri Gör
+                  </Link>
                 )}
               </div>
             )}

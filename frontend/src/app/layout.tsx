@@ -8,12 +8,16 @@ import ChatWidget from "@/components/chat/ChatWidget";
 export const metadata: Metadata = {
   title: "Ülgen Paslanmaz",
   description: "Profesyonel Bıçak ve Mutfak Ekipmanları",
+  icons: {
+    icon: "/LOGO.png",
+    apple: "/LOGO.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
-      <body className="bg-stone-50 text-stone-800 relative">
+      <body className="bg-white text-stone-900 relative" suppressHydrationWarning>
         <Providers>
           {/* Sayfanın mevcut içeriği */}
           <ClientShell>{children}</ClientShell>

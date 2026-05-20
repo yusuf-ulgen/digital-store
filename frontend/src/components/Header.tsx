@@ -24,6 +24,20 @@ import {
   X
 } from "lucide-react";
 
+/* ---- Logo Bileşeni ---- */
+function UlgenLogo({ className = "" }: { className?: string }) {
+  return (
+    <Image
+      src="/LOGO.png"
+      alt="Ülgen Paslanmaz"
+      width={120}
+      height={120}
+      priority
+      className={className}
+    />
+  );
+}
+
 const SEARCH_LS = "ulgen.searchHistory.v1";
 
 /* ---- Üst bilgilendirme şeritleri ---- */
@@ -150,27 +164,15 @@ function MainHeader() {
   };
 
   return (
-    <div className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4 md:gap-8">
+    <div className="w-full bg-white border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
         {/* Sol: Logo */}
         <div className="flex-shrink-0">
           <Link
             href="/"
-            onClick={(e) => {
-              if (e.metaKey || e.ctrlKey) return;
-              e.preventDefault();
-              setShowLogo(true);
-            }}
-            className="block h-12 md:h-16 w-auto cursor-zoom-in hover:opacity-90 transition-opacity"
+            className="block hover:opacity-80 transition-opacity"
           >
-            <Image
-              src="/LOGO.png"
-              alt="ÜLGEN Paslanmaz"
-              width={160}
-              height={64}
-              priority
-              className="h-full w-auto object-contain"
-            />
+            <UlgenLogo className="h-12 md:h-14 w-auto object-contain" />
           </Link>
         </div>
 
@@ -186,11 +188,11 @@ function MainHeader() {
               }}
               onFocus={() => setOpenSug(true)}
               placeholder="Kusursuz keskinliği arayın..."
-              className="w-full h-12 pl-5 pr-12 rounded-full border border-gray-200 bg-gray-50 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none text-sm"
+              className="w-full h-11 pl-5 pr-12 rounded-full border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 transition-all outline-none text-sm"
             />
             <button
               type="submit"
-              className="absolute right-2 top-1.5 h-9 w-9 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-black transition-colors"
+              className="absolute right-2 top-1 h-9 w-9 flex items-center justify-center rounded-full bg-gray-950 text-white hover:bg-black transition-colors"
             >
               <Search size={18} />
             </button>
@@ -257,9 +259,9 @@ function MainHeader() {
             </Link>
           )}
 
-          <Link href="/cart" className="relative p-2.5 rounded-xl bg-gray-900 text-white hover:bg-black transition-all shadow-lg shadow-gray-200 hover:scale-105 active:scale-95">
+          <Link href="/cart" className="relative p-2.5 rounded-xl bg-gray-950 text-white hover:bg-black transition-all hover:scale-105 active:scale-95">
             <ShoppingCart size={20} />
-            <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center bg-blue-600 text-[10px] font-bold rounded-full border-2 border-white">
+            <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center bg-white text-gray-950 text-[10px] font-bold rounded-full border-2 border-gray-950">
               {typeof count === "number" ? count : 0}
             </span>
           </Link>
@@ -270,26 +272,7 @@ function MainHeader() {
         </div>
       </div>
 
-      {/* LOGO MODAL Overlay */}
-      {showLogo && (
-        <div
-          className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300"
-          onClick={() => setShowLogo(false)}
-        >
-          <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors">
-            <X size={48} strokeWidth={1} />
-          </button>
-          <div className="max-w-4xl w-full" onClick={e => e.stopPropagation()}>
-             <Image
-               src="/LOGO.png"
-               alt="Büyük Logo"
-               width={1200}
-               height={600}
-               className="w-full h-auto object-contain drop-shadow-2xl"
-             />
-          </div>
-        </div>
-      )}
+      {/* LOGO MODAL Kaldırıldı — artık SVG inline */}
     </div>
   );
 }
@@ -310,15 +293,15 @@ function MainNav() {
   return (
     <nav className="w-full bg-white border-b border-gray-100 overflow-x-auto no-scrollbar">
       <div className="max-w-7xl mx-auto px-4">
-        <ul className="flex items-center gap-8 py-3 whitespace-nowrap">
+        <ul className="flex items-center gap-6 py-2.5 whitespace-nowrap">
           {items.map((it) => (
             <li key={it.href}>
               <Link
                 href={it.href}
-                className="text-[11px] font-bold text-gray-500 hover:text-black tracking-[0.15em] transition-colors flex items-center gap-1 group"
+                className="text-[11px] font-bold text-stone-500 hover:text-stone-950 tracking-[0.14em] transition-colors flex items-center gap-0.5 group relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-stone-950 after:transition-all hover:after:w-full"
               >
                 {it.label}
-                {it.label.includes(">") || it.href.includes("cat") ? <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform opacity-30" /> : null}
+                {it.href.includes("cat") ? <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform opacity-30" /> : null}
               </Link>
             </li>
           ))}
