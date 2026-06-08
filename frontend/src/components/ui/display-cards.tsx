@@ -114,6 +114,7 @@ function DisplayCard({
         className={wrapperClasses}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        style={{ zIndex: isActive ? 100 : undefined }}
       >
         <Link href={href} className={cardClasses}>
           {content}
@@ -127,6 +128,7 @@ function DisplayCard({
       className={wrapperClasses}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      style={{ zIndex: isActive ? 100 : undefined }}
     >
       <div className={cardClasses}>
         {content}
