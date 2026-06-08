@@ -156,26 +156,9 @@ export default function DisplayCards({ cards }: DisplayCardsProps) {
 
   const displayCards = cards || defaultCards;
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Auto-cycle effect
-  useEffect(() => {
-    if (hoveredIndex !== null) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setActiveIndex((prev) => {
-        if (prev === null) return 0;
-        return (prev + 1) % displayCards.length;
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [hoveredIndex, displayCards.length]);
-
-  const effectiveActiveIndex = hoveredIndex !== null ? hoveredIndex : activeIndex;
+  const effectiveActiveIndex = hoveredIndex;
   const isAnyActive = effectiveActiveIndex !== null;
 
   return (
@@ -188,7 +171,6 @@ export default function DisplayCards({ cards }: DisplayCardsProps) {
           isAnyActive={isAnyActive}
           onMouseEnter={() => {
             setHoveredIndex(index);
-            setActiveIndex(null);
           }}
           onMouseLeave={() => {
             setHoveredIndex(null);
