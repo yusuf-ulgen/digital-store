@@ -23,8 +23,19 @@ export default function ChatWindow({ onClose }: Props) {
   const router = useRouter();
   const processedToolCalls = useRef<Set<string>>(new Set());
 
-  const { messages, status, sendMessage } = useChat({
+  const { messages, status, sendMessage, setMessages } = useChat({
     api: "/api/chat",
+    onError: (e: unknown) => {
+      console.error('Chat error:', e);
+      setMessages((prev: any) => [
+        ...prev,
+        {
+          id: Math.random().toString(36).substring(7),
+          role: 'assistant',
+          content: 'Üzgünüm, şu anda çok fazla istek alıyoruz. Lütfen biraz bekledikten sonra tekrar deneyin. ⚠️',
+        },
+      ]);
+    },
   } as any);
 
   const isLoading = status === "submitted" || status === "streaming";

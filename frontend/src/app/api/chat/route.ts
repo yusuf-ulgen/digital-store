@@ -7,7 +7,52 @@ import { collection, getDocs } from 'firebase/firestore';
 
 export const maxDuration = 30;
 
+// Basit bellek içi rate-limiter tanımları
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const globalLimit = { count: 0, resetTime: 0 };
+
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 dakika
+const MAX_REQUESTS_PER_WINDOW = 20; // 5 dakikada en fazla 20 istek
+
+const GLOBAL_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 saat
+const GLOBAL_MAX_REQUESTS = 100; // 1 saatte toplam en fazla 100 istek
+
 export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
+  const now = Date.now();
+
+  // 1. Global limit kontrolü
+  if (now > globalLimit.resetTime) {
+    globalLimit.count = 1;
+    globalLimit.resetTime = now + GLOBAL_LIMIT_WINDOW_MS;
+  } else {
+    if (globalLimit.count >= GLOBAL_MAX_REQUESTS) {
+      return new Response(
+        JSON.stringify({ error: 'Saatlik genel kullanım limitine ulaşıldı. Lütfen daha sonra tekrar deneyin.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    globalLimit.count += 1;
+  }
+
+  // 2. IP bazlı limit kontrolü
+  const limitData = rateLimitMap.get(ip);
+  if (limitData) {
+    if (now > limitData.resetTime) {
+      rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      if (limitData.count >= MAX_REQUESTS_PER_WINDOW) {
+        return new Response(
+          JSON.stringify({ error: 'Çok fazla istek gönderdiniz. Lütfen birkaç dakika sonra tekrar deneyin.' }),
+          { status: 429, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      limitData.count += 1;
+    }
+  } else {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+  }
+
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   // 1. Ürün verisini firestore'dan çekmeye çalış, hata durumunda mock dataya düş

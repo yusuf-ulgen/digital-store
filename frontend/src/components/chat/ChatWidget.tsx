@@ -18,7 +18,17 @@ export default function ChatWidget() {
     status,
   } = useChat({
     api: '/api/chat',
-    onError: (e: unknown) => console.error('Chat error:', e),
+    onError: (e: unknown) => {
+      console.error('Chat error:', e);
+      setMessages((prev: any) => [
+        ...prev,
+        {
+          id: generateId(),
+          role: 'assistant',
+          content: 'Üzgünüm, şu anda çok fazla istek alıyoruz. Lütfen biraz bekledikten sonra tekrar deneyin. ⚠️',
+        },
+      ]);
+    },
   } as any);
 
   const [localInput, setLocalInput] = useState('');
