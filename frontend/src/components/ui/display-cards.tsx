@@ -98,7 +98,7 @@ function DisplayCard({
   }
 
   const cardClasses = cn(
-    "relative flex h-full w-full select-none flex-col justify-between rounded-xl border border-stone-750 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 px-4 py-3 sm:px-6 sm:py-5 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl z-10 pointer-events-auto",
+    "relative flex h-full w-full select-none flex-col justify-between rounded-xl border border-stone-750 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 px-4 py-3 sm:px-6 sm:py-5 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl z-10 pointer-events-auto transform translate-y-0 translate-x-0",
     "after:absolute after:-right-1 after:top-[-5%] after:h-[110%] after:w-[20rem] after:bg-gradient-to-l after:from-stone-950 after:to-transparent after:content-['']",
     "hover:border-stone-400 hover:from-stone-750 hover:to-stone-850 cursor-pointer hover:shadow-stone-950/65 hover:shadow-2xl",
     cardClassesList.join(" "),

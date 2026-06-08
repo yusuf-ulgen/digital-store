@@ -126,7 +126,7 @@ export default function Home() {
 
         {/* ── KATEGORİ KARTLARI (Display Cards tarzı) ── */}
         <section className="bg-stone-950 border-b border-white/5 pt-24 pb-8 sm:pt-24 sm:pb-8 overflow-hidden flex items-center justify-center select-none">
-          <div className="relative w-full max-w-[32rem] sm:max-w-[44rem] h-[24rem] flex items-center justify-center -translate-x-[12px] sm:-translate-x-[168px] -translate-y-[24px] sm:-translate-y-[48px]">
+          <div className="relative w-full max-w-[32rem] sm:max-w-[44rem] h-[20rem] flex items-center justify-center -translate-x-[12px] sm:-translate-x-[168px] -translate-y-[24px] sm:-translate-y-[32px]">
             <DisplayCards cards={CATEGORY_DISPLAY_CARDS} />
           </div>
         </section>
