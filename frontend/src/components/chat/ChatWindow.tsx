@@ -32,7 +32,7 @@ export default function ChatWindow({ onClose }: Props) {
         {
           id: Math.random().toString(36).substring(7),
           role: 'assistant',
-          content: 'Üzgünüm, şu anda çok fazla istek alıyoruz. Lütfen biraz bekledikten sonra tekrar deneyin. ⚠️',
+          content: 'Bağlantı veya API anahtarı hatası oluştu. Lütfen Gemini API anahtarınızı kontrol edip tekrar deneyin. ⚠️',
         },
       ]);
     },
