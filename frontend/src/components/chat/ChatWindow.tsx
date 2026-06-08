@@ -21,6 +21,7 @@ export default function ChatWindow({ onClose }: Props) {
   const [input, setInput] = useState("");
 
   const router = useRouter();
+  const processedToolCalls = useRef<Set<string>>(new Set());
 
   const { messages, status, sendMessage } = useChat({
     api: "/api/chat",
@@ -43,11 +44,14 @@ export default function ChatWindow({ onClose }: Props) {
 
     if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
       lastMessage.toolInvocations.forEach((toolInvocation: any) => {
-        // AI SDK v4/v5'te toolInvocation yapısı:
-        // categorySlug tool'dan geliyorsa:
+        const toolCallId = toolInvocation.toolCallId;
+        if (!toolCallId || processedToolCalls.current.has(toolCallId)) return;
+
+        // Redirection tools
         if (toolInvocation.toolName === 'goToCategoryPage') {
           const slug = toolInvocation.args.categorySlug;
           if (slug) {
+            processedToolCalls.current.add(toolCallId);
             router.push(`/products?cat=${slug}`);
           }
         }
@@ -55,6 +59,7 @@ export default function ChatWindow({ onClose }: Props) {
         if (toolInvocation.toolName === 'goToProductPage') {
           const pid = toolInvocation.args.productId;
           if (pid) {
+            processedToolCalls.current.add(toolCallId);
             router.push(`/products/${pid}`);
           }
         }

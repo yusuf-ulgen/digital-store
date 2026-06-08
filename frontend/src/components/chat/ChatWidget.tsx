@@ -24,8 +24,9 @@ export default function ChatWidget() {
   const [localInput, setLocalInput] = useState('');
   const isLoading = status === 'submitted' || status === 'streaming';
   const [hasGreeted, setHasGreeted] = useState(false);
+  const processedToolCalls = useRef<Set<string>>(new Set());
 
-  // Ayarlar
+  // Settings
   const defaultSize = { width: 320, height: 380 };
   const [size, setSize] = useState(defaultSize);
   const minSize = defaultSize;
@@ -70,10 +71,14 @@ export default function ChatWidget() {
 
     if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
       lastMessage.toolInvocations.forEach((toolInvocation: any) => {
+        const toolCallId = toolInvocation.toolCallId;
+        if (!toolCallId || processedToolCalls.current.has(toolCallId)) return;
+
         // Redirection tools
         if (toolInvocation.toolName === 'goToCategoryPage') {
           const slug = toolInvocation.args.categorySlug;
           if (slug) {
+            processedToolCalls.current.add(toolCallId);
             router.push(`/products?cat=${slug}`);
           }
         }
@@ -81,6 +86,7 @@ export default function ChatWidget() {
         if (toolInvocation.toolName === 'goToProductPage') {
           const pid = toolInvocation.args.productId;
           if (pid) {
+            processedToolCalls.current.add(toolCallId);
             router.push(`/products/${pid}`);
           }
         }
