@@ -89,9 +89,6 @@ function DisplayCard({
   const activeClasses = [];
   if (isActive) {
     activeClasses.push(...activeTranslateClasses);
-    activeClasses.push("!opacity-100");
-  } else if (isAnyActive) {
-    activeClasses.push("!opacity-50");
   }
 
   const cardClasses = cn(

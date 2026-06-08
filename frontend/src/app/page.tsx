@@ -21,7 +21,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-amber-400",
     titleClassName: "text-amber-400",
     className:
-      "[grid-area:stack] hover:-translate-y-[64px] hover:z-[100] z-[10] group-hover/stack:opacity-50 hover:!opacity-100",
+      "[grid-area:stack] hover:-translate-y-[64px] hover:z-[100] z-[10]",
   },
   {
     icon: <span className="text-xl">🗡️</span>,
@@ -32,7 +32,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-sky-400",
     titleClassName: "text-sky-400",
     className:
-      "[grid-area:stack] translate-x-[4px] sm:translate-x-[64px] translate-y-[3px] sm:translate-y-[18px] hover:-translate-y-[64px] hover:z-[100] z-[20] group-hover/stack:opacity-50 hover:!opacity-100",
+      "[grid-area:stack] translate-x-[4px] sm:translate-x-[64px] translate-y-[3px] sm:translate-y-[18px] hover:-translate-y-[64px] hover:z-[100] z-[20]",
   },
   {
     icon: <span className="text-xl">⛺</span>,
@@ -43,7 +43,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-emerald-400",
     titleClassName: "text-emerald-400",
     className:
-      "[grid-area:stack] translate-x-[8px] sm:translate-x-[128px] translate-y-[6px] sm:translate-y-[36px] hover:-translate-y-[64px] hover:z-[100] z-[30] group-hover/stack:opacity-50 hover:!opacity-100",
+      "[grid-area:stack] translate-x-[8px] sm:translate-x-[128px] translate-y-[6px] sm:translate-y-[36px] hover:-translate-y-[64px] hover:z-[100] z-[30]",
   },
   {
     icon: <span className="text-xl">🥩</span>,
@@ -54,7 +54,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-rose-400",
     titleClassName: "text-rose-400",
     className:
-      "[grid-area:stack] translate-x-[12px] sm:translate-x-[192px] translate-y-[9px] sm:translate-y-[54px] hover:-translate-y-[64px] hover:z-[100] z-[40] group-hover/stack:opacity-50 hover:!opacity-100",
+      "[grid-area:stack] translate-x-[12px] sm:translate-x-[192px] translate-y-[9px] sm:translate-y-[54px] hover:-translate-y-[64px] hover:z-[100] z-[40]",
   },
   {
     icon: <span className="text-xl">🪓</span>,
@@ -65,7 +65,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-orange-400",
     titleClassName: "text-orange-400",
     className:
-      "[grid-area:stack] translate-x-[16px] sm:translate-x-[256px] translate-y-[12px] sm:translate-y-[72px] hover:-translate-y-[64px] hover:z-[100] z-[50] group-hover/stack:opacity-50 hover:!opacity-100",
+      "[grid-area:stack] translate-x-[16px] sm:translate-x-[256px] translate-y-[12px] sm:translate-y-[72px] hover:-translate-y-[64px] hover:z-[100] z-[50]",
   },
   {
     icon: <span className="text-xl">⚙️</span>,
@@ -76,7 +76,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-violet-400",
     titleClassName: "text-violet-400",
     className:
-      "[grid-area:stack] translate-x-[20px] sm:translate-x-[320px] translate-y-[15px] sm:translate-y-[90px] hover:-translate-y-[64px] hover:z-[100] z-[60] group-hover/stack:opacity-50 hover:!opacity-100",
+      "[grid-area:stack] translate-x-[20px] sm:translate-x-[320px] translate-y-[15px] sm:translate-y-[90px] hover:-translate-y-[64px] hover:z-[100] z-[60]",
   },
   {
     icon: <span className="text-xl">🔪</span>,
@@ -87,7 +87,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-cyan-400",
     titleClassName: "text-cyan-400",
     className:
-      "[grid-area:stack] translate-x-[24px] sm:translate-x-[384px] translate-y-[18px] sm:translate-y-[108px] hover:-translate-y-[64px] hover:z-[100] z-[70] group-hover/stack:opacity-50 hover:!opacity-100",
+      "[grid-area:stack] translate-x-[24px] sm:translate-x-[384px] translate-y-[18px] sm:translate-y-[108px] hover:-translate-y-[64px] hover:z-[100] z-[70]",
   },
 ];
 
