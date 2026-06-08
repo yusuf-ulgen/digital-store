@@ -76,7 +76,7 @@ export async function POST(req: Request) {
   ).join('\n');
 
   const result = (streamText as any)({
-    model: google('gemini-1.5-flash'),
+    model: google('gemini-flash-latest'),
     maxSteps: 5,
 
     system: `
