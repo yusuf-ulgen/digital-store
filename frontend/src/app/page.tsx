@@ -21,7 +21,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-amber-400",
     titleClassName: "text-amber-400",
     className:
-      "[grid-area:stack] hover:-translate-y-[64px] hover:z-[100] z-[10] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+      "[grid-area:stack] hover:-translate-y-[64px] hover:z-[100] z-[10] group-hover/stack:opacity-50 hover:!opacity-100",
   },
   {
     icon: <span className="text-xl">🗡️</span>,
@@ -32,7 +32,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-sky-400",
     titleClassName: "text-sky-400",
     className:
-      "[grid-area:stack] translate-x-[4px] sm:translate-x-[56px] translate-y-[3px] sm:translate-y-[18px] hover:-translate-y-[64px] hover:z-[100] z-[20] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+      "[grid-area:stack] translate-x-[4px] sm:translate-x-[64px] translate-y-[3px] sm:translate-y-[18px] hover:-translate-y-[64px] hover:z-[100] z-[20] group-hover/stack:opacity-50 hover:!opacity-100",
   },
   {
     icon: <span className="text-xl">⛺</span>,
@@ -43,7 +43,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-emerald-400",
     titleClassName: "text-emerald-400",
     className:
-      "[grid-area:stack] translate-x-[8px] sm:translate-x-[112px] translate-y-[6px] sm:translate-y-[36px] hover:-translate-y-[64px] hover:z-[100] z-[30] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+      "[grid-area:stack] translate-x-[8px] sm:translate-x-[128px] translate-y-[6px] sm:translate-y-[36px] hover:-translate-y-[64px] hover:z-[100] z-[30] group-hover/stack:opacity-50 hover:!opacity-100",
   },
   {
     icon: <span className="text-xl">🥩</span>,
@@ -54,7 +54,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-rose-400",
     titleClassName: "text-rose-400",
     className:
-      "[grid-area:stack] translate-x-[12px] sm:translate-x-[168px] translate-y-[9px] sm:translate-y-[54px] hover:-translate-y-[64px] hover:z-[100] z-[40] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+      "[grid-area:stack] translate-x-[12px] sm:translate-x-[192px] translate-y-[9px] sm:translate-y-[54px] hover:-translate-y-[64px] hover:z-[100] z-[40] group-hover/stack:opacity-50 hover:!opacity-100",
   },
   {
     icon: <span className="text-xl">🪓</span>,
@@ -65,7 +65,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-orange-400",
     titleClassName: "text-orange-400",
     className:
-      "[grid-area:stack] translate-x-[16px] sm:translate-x-[224px] translate-y-[12px] sm:translate-y-[72px] hover:-translate-y-[64px] hover:z-[100] z-[50] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+      "[grid-area:stack] translate-x-[16px] sm:translate-x-[256px] translate-y-[12px] sm:translate-y-[72px] hover:-translate-y-[64px] hover:z-[100] z-[50] group-hover/stack:opacity-50 hover:!opacity-100",
   },
   {
     icon: <span className="text-xl">⚙️</span>,
@@ -76,7 +76,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-violet-400",
     titleClassName: "text-violet-400",
     className:
-      "[grid-area:stack] translate-x-[20px] sm:translate-x-[280px] translate-y-[15px] sm:translate-y-[90px] hover:-translate-y-[64px] hover:z-[100] z-[60] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+      "[grid-area:stack] translate-x-[20px] sm:translate-x-[320px] translate-y-[15px] sm:translate-y-[90px] hover:-translate-y-[64px] hover:z-[100] z-[60] group-hover/stack:opacity-50 hover:!opacity-100",
   },
   {
     icon: <span className="text-xl">🔪</span>,
@@ -87,7 +87,7 @@ const CATEGORY_DISPLAY_CARDS = [
     iconClassName: "text-cyan-400",
     titleClassName: "text-cyan-400",
     className:
-      "[grid-area:stack] translate-x-[24px] sm:translate-x-[336px] translate-y-[18px] sm:translate-y-[108px] hover:-translate-y-[64px] hover:z-[100] z-[70] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-0 before:opacity-0 group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+      "[grid-area:stack] translate-x-[24px] sm:translate-x-[384px] translate-y-[18px] sm:translate-y-[108px] hover:-translate-y-[64px] hover:z-[100] z-[70] group-hover/stack:opacity-50 hover:!opacity-100",
   },
 ];
 
@@ -126,7 +126,7 @@ export default function Home() {
 
         {/* ── KATEGORİ KARTLARI (Display Cards tarzı) ── */}
         <section className="bg-stone-950 border-b border-white/5 pt-20 pb-4 sm:pt-20 sm:pb-4 overflow-hidden flex items-center justify-center select-none">
-          <div className="relative w-full max-w-[32rem] sm:max-w-[44rem] h-[18rem] flex items-center justify-center -translate-x-[12px] sm:-translate-x-[168px] -translate-y-[12px] sm:-translate-y-[18px]">
+          <div className="relative w-full max-w-[32rem] sm:max-w-[44rem] h-[18rem] flex items-center justify-center -translate-x-[12px] sm:-translate-x-[192px] -translate-y-[12px] sm:-translate-y-[72px]">
             <DisplayCards cards={CATEGORY_DISPLAY_CARDS} />
           </div>
         </section>

@@ -24,10 +24,7 @@ const HOVER_MAP: Record<string, string> = {
   "hover:-translate-y-10": "group-hover:-translate-y-10",
   "hover:-translate-y-1": "group-hover:-translate-y-1",
   "hover:translate-y-10": "group-hover:translate-y-10",
-  "hover:before:opacity-0": "group-hover:before:opacity-0",
-  "hover:grayscale-0": "group-hover:grayscale-0",
-  "hover:!grayscale-0": "group-hover:!grayscale-0",
-  "hover:before:!opacity-0": "group-hover:before:!opacity-0",
+  "hover:!opacity-100": "group-hover:!opacity-100",
 };
 
 import { useState, useEffect } from "react";
@@ -92,9 +89,9 @@ function DisplayCard({
   const activeClasses = [];
   if (isActive) {
     activeClasses.push(...activeTranslateClasses);
-    activeClasses.push("!grayscale-0", "before:!opacity-0");
+    activeClasses.push("!opacity-100");
   } else if (isAnyActive) {
-    activeClasses.push("!grayscale-[100%]", "before:!opacity-100");
+    activeClasses.push("!opacity-50");
   }
 
   const cardClasses = cn(
