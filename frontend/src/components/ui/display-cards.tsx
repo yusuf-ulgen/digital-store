@@ -13,6 +13,10 @@ interface DisplayCardProps {
   iconClassName?: string;
   titleClassName?: string;
   href?: string;
+  isActive?: boolean;
+  isAnyActive?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const HOVER_MAP: Record<string, string> = {
@@ -22,7 +26,11 @@ const HOVER_MAP: Record<string, string> = {
   "hover:translate-y-10": "group-hover:translate-y-10",
   "hover:before:opacity-0": "group-hover:before:opacity-0",
   "hover:grayscale-0": "group-hover:grayscale-0",
+  "hover:!grayscale-0": "group-hover:!grayscale-0",
+  "hover:before:!opacity-0": "group-hover:before:!opacity-0",
 };
+
+import { useState, useEffect } from "react";
 
 function DisplayCard({
   className,
@@ -33,6 +41,10 @@ function DisplayCard({
   iconClassName = "text-blue-500",
   titleClassName = "text-blue-500",
   href,
+  isActive,
+  isAnyActive,
+  onMouseEnter,
+  onMouseLeave,
 }: DisplayCardProps) {
   const content = (
     <div className="relative z-10 flex flex-col justify-between h-full w-full [&>*]:flex [&>*]:items-center [&>*]:gap-2.5">
@@ -73,21 +85,39 @@ function DisplayCard({
     return c;
   });
 
+  const activeTranslateClasses = cardClassesList
+    .filter(c => c.startsWith("group-hover:-translate") || c.startsWith("group-hover:translate"))
+    .map(c => c.replace("group-hover:", ""));
+
+  const activeClasses = [];
+  if (isActive) {
+    activeClasses.push(...activeTranslateClasses);
+    activeClasses.push("!grayscale-0", "before:!opacity-0");
+  } else if (isAnyActive) {
+    activeClasses.push("!grayscale-[100%]", "before:!opacity-100");
+  }
+
   const cardClasses = cn(
     "relative flex h-full w-full select-none flex-col justify-between rounded-xl border border-stone-750 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 px-4 py-3 sm:px-6 sm:py-5 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl z-10 pointer-events-auto",
     "after:absolute after:-right-1 after:top-[-5%] after:h-[110%] after:w-[20rem] after:bg-gradient-to-l after:from-stone-950 after:to-transparent after:content-['']",
     "hover:border-stone-400 hover:from-stone-750 hover:to-stone-850 cursor-pointer hover:shadow-stone-950/65 hover:shadow-2xl",
-    cardClassesList.join(" ")
+    cardClassesList.join(" "),
+    activeClasses.join(" ")
   );
 
   const wrapperClasses = cn(
     "group relative w-[85vw] sm:w-[28rem] h-36 sm:h-44 -skew-y-[8deg] pointer-events-auto transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-    wrapperClassesList.join(" ")
+    wrapperClassesList.join(" "),
+    isActive && "!z-[100]"
   );
 
   if (href) {
     return (
-      <div className={wrapperClasses}>
+      <div 
+        className={wrapperClasses}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
         <Link href={href} className={cardClasses}>
           {content}
         </Link>
@@ -96,7 +126,11 @@ function DisplayCard({
   }
 
   return (
-    <div className={wrapperClasses}>
+    <div 
+      className={wrapperClasses}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       <div className={cardClasses}>
         {content}
       </div>
@@ -123,10 +157,44 @@ export default function DisplayCards({ cards }: DisplayCardsProps) {
 
   const displayCards = cards || defaultCards;
 
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  // Auto-cycle effect
+  useEffect(() => {
+    if (hoveredIndex !== null) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => {
+        if (prev === null) return 0;
+        return (prev + 1) % displayCards.length;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [hoveredIndex, displayCards.length]);
+
+  const effectiveActiveIndex = hoveredIndex !== null ? hoveredIndex : activeIndex;
+  const isAnyActive = effectiveActiveIndex !== null;
+
   return (
     <div className="group/stack grid [grid-template-areas:'stack'] place-items-center opacity-100 animate-in fade-in-0 duration-700">
       {displayCards.map((cardProps, index) => (
-        <DisplayCard key={index} {...cardProps} />
+        <DisplayCard 
+          key={index} 
+          {...cardProps} 
+          isActive={effectiveActiveIndex === index}
+          isAnyActive={isAnyActive}
+          onMouseEnter={() => {
+            setHoveredIndex(index);
+            setActiveIndex(null);
+          }}
+          onMouseLeave={() => {
+            setHoveredIndex(null);
+          }}
+        />
       ))}
     </div>
   );
