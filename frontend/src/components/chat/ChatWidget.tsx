@@ -10,6 +10,7 @@ export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
     messages,
@@ -35,6 +36,13 @@ export default function ChatWidget() {
   const isLoading = status === 'submitted' || status === 'streaming';
   const [hasGreeted, setHasGreeted] = useState(false);
   const processedToolCalls = useRef<Set<string>>(new Set());
+
+  // --- Otomatik Kaydırma ---
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isOpen]);
 
   // Settings
   const defaultSize = { width: 320, height: 380 };
@@ -230,6 +238,7 @@ export default function ChatWidget() {
                 Yazıyor...
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input Alanı */}

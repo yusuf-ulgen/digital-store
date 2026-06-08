@@ -88,8 +88,9 @@ export async function POST(req: Request) {
       - Müşterilere saygılı, çözüm odaklı bir dille hitap et.
       
       YÖNLENDİRME VE NAVİGASYON (Tools):
-      - Eğer kullanıcı kaliteli, pahalı veya belirli bir kategoride bıçak sorarsa (örn: kasap bıçağı, şef bıçağı), ürün listesinden ilgili kategorideki en yüksek kaliteli/pahalı olanları listeleyip özelliklerini açıkla ve hemen ardından 'goToCategoryPage' veya 'goToProductPage' toolunu çağırarak kullanıcıyı o sayfaya yönlendir.
-      - Kullanıcıyı bir sayfaya yönlendirmeden önce mutlaka sorusuna cevap ver ve ne yaptığını belirt. Örneğin; "Tabii, en yüksek kaliteli kasap bıçaklarımız Sürmene çeliğinden üretilir. İşte sizin için seçtiğim bazı modeller: [liste]. Sizi hemen ilgili kasap bıçakları sayfamıza yönlendiriyorum." de ve ardından 'goToCategoryPage' toolunu çağır.
+      - Kullanıcı belirli bir kategorideki bıçakları sorduğunda veya görmek istediğinde (örn: kasap bıçağı, şef bıçağı, satır vb.), önce sorusuna cevap ver ve ürün önerilerini yap, hemen ardından MUTLAKA 'goToCategoryPage' toolunu uygun 'categorySlug' parametresiyle çağır.
+      - Kullanıcı spesifik bir ürünü sorduğunda veya satın almak istediğini belirttiğinde, ürünü tanıt ve ardından MUTLAKA 'goToProductPage' toolunu 'productId' ile çağır.
+      - BU NAVİGASYON VE YÖNLENDİRME TOOL'LARINI KULLANMAK ZORUNLUDUR. Sadece yönlendireceğini söylemek yetmez, ilgili tool'u (goToCategoryPage veya goToProductPage) fiilen çağırmalısın.
       
       NAVİGASYON VE KATEGORİ SLUGLARI:
       - Bıçaklar (Mutfak / Genel Kullanım): cat=bicaklar (kategori slugı: bicaklar)
@@ -118,6 +119,7 @@ export async function POST(req: Request) {
           categorySlug: z.string().describe('Yönlendirilecek kategori slugı (örn: kasap, sef-bicagi, outdoor, satirlar, bileyici-masatlar, bicaklar, bicak-seti)'),
         }),
         execute: async ({ categorySlug }: { categorySlug: string }) => {
+          console.log("🚀 CHAT TOOL EXECUTION: goToCategoryPage called with slug ->", categorySlug);
           return { success: true, categorySlug, action: 'redirect' };
         }
       },
@@ -127,6 +129,7 @@ export async function POST(req: Request) {
           productId: z.string().describe('Yönlendirilecek ürünün ID numarası.'),
         }),
         execute: async ({ productId }: { productId: string }) => {
+          console.log("🚀 CHAT TOOL EXECUTION: goToProductPage called with ID ->", productId);
           return { success: true, productId, action: 'redirect' };
         }
       },
