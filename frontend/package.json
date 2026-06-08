@@ -15,11 +15,13 @@
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "ai": "^5.0.101",
+    "clsx": "^2.1.1",
     "firebase": "^12.3.0",
     "lucide-react": "^0.545.0",
     "next": "15.5.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -51,20 +51,20 @@ export async function POST(req: Request) {
     messages: convertToModelMessages(messages),
     
     tools: {
-      goToCategoryPage: tool({
+      goToCategoryPage: {
         description: 'Kullanıcıyı belirli bir ürün kategorisi sayfasına yönlendirir.',
         parameters: z.object({
           categorySlug: z.string().describe('Yönlendirilecek kategori slugı (örn: kasap, sef-bicagi, meyve)'),
         }),
-      }),
-      goToProductPage: tool({
+      },
+      goToProductPage: {
         description: 'Kullanıcıyı belirli bir ürün detay sayfasına yönlendirir.',
         parameters: z.object({
           productId: z.string().describe('Yönlendirilecek ürünün ID numarası.'),
         }),
-      }),
-    },
+      },
+    } as any,
   });
 
   return result.toUIMessageStreamResponse();
-}
+}

@@ -19,7 +19,7 @@ export default function ChatWidget() {
   } = useChat({
     api: '/api/chat',
     onError: (e: unknown) => console.error('Chat error:', e),
-  });
+  } as any);
 
   const [localInput, setLocalInput] = useState('');
   const isLoading = status === 'submitted' || status === 'streaming';
@@ -66,7 +66,7 @@ export default function ChatWidget() {
   // --- AI Yönlendirme Dinleyicisi ---
   useEffect(() => {
     if (messages.length === 0) return;
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages[messages.length - 1] as any;
 
     if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
       lastMessage.toolInvocations.forEach((toolInvocation: any) => {

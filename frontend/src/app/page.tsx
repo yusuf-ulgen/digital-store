@@ -8,6 +8,89 @@ import ProductCard from "@/components/ProductCard";
 import type { LocalProduct } from "@/lib/mock-data";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/components/Footer";
+import DisplayCards from "@/components/ui/display-cards";
+
+/* ── Kategori Tanımları (Display Cards Yığını İçin) ── */
+const CATEGORY_DISPLAY_CARDS = [
+  {
+    icon: <span className="text-xl">👨‍🍳</span>,
+    title: "Şef Bıçağı",
+    description: "Profesyonel mutfak ustaları için",
+    date: "Koleksiyonu İncele →",
+    href: "/products?cat=sef-bicagi",
+    iconClassName: "text-amber-400",
+    titleClassName: "text-amber-400",
+    className:
+      "[grid-area:stack] hover:-translate-y-[64px] hover:z-[100] z-[10] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+  },
+  {
+    icon: <span className="text-xl">🗡️</span>,
+    title: "Bıçak Seti",
+    description: "Komple set çözümleri",
+    date: "Koleksiyonu İncele →",
+    href: "/products?cat=bicak-seti",
+    iconClassName: "text-sky-400",
+    titleClassName: "text-sky-400",
+    className:
+      "[grid-area:stack] translate-x-[4px] sm:translate-x-[56px] translate-y-[3px] sm:translate-y-[24px] hover:-translate-y-[64px] hover:z-[100] z-[20] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+  },
+  {
+    icon: <span className="text-xl">⛺</span>,
+    title: "Outdoor",
+    description: "Doğa ve kamp bıçakları",
+    date: "Koleksiyonu İncele →",
+    href: "/products?cat=outdoor",
+    iconClassName: "text-emerald-400",
+    titleClassName: "text-emerald-400",
+    className:
+      "[grid-area:stack] translate-x-[8px] sm:translate-x-[112px] translate-y-[6px] sm:translate-y-[48px] hover:-translate-y-[64px] hover:z-[100] z-[30] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+  },
+  {
+    icon: <span className="text-xl">🥩</span>,
+    title: "Kasap",
+    description: "Et işleme uzmanları için",
+    date: "Koleksiyonu İncele →",
+    href: "/products?cat=kasap",
+    iconClassName: "text-rose-400",
+    titleClassName: "text-rose-400",
+    className:
+      "[grid-area:stack] translate-x-[12px] sm:translate-x-[168px] translate-y-[9px] sm:translate-y-[72px] hover:-translate-y-[64px] hover:z-[100] z-[40] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+  },
+  {
+    icon: <span className="text-xl">🪓</span>,
+    title: "Satırlar",
+    description: "Ağır iş kesim aletleri",
+    date: "Koleksiyonu İncele →",
+    href: "/products?cat=satirlar",
+    iconClassName: "text-orange-400",
+    titleClassName: "text-orange-400",
+    className:
+      "[grid-area:stack] translate-x-[16px] sm:translate-x-[224px] translate-y-[12px] sm:translate-y-[96px] hover:-translate-y-[64px] hover:z-[100] z-[50] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+  },
+  {
+    icon: <span className="text-xl">⚙️</span>,
+    title: "Bileyici",
+    description: "Keskinlik bakım araçları",
+    date: "Koleksiyonu İncele →",
+    href: "/products?cat=bileyici-masatlar",
+    iconClassName: "text-violet-400",
+    titleClassName: "text-violet-400",
+    className:
+      "[grid-area:stack] translate-x-[20px] sm:translate-x-[280px] translate-y-[15px] sm:translate-y-[120px] hover:-translate-y-[64px] hover:z-[100] z-[60] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-[100%] group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+  },
+  {
+    icon: <span className="text-xl">🔪</span>,
+    title: "Bıçaklar",
+    description: "Genel kullanım bıçakları",
+    date: "Koleksiyonu İncele →",
+    href: "/products?cat=bicaklar",
+    iconClassName: "text-cyan-400",
+    titleClassName: "text-cyan-400",
+    className:
+      "[grid-area:stack] translate-x-[24px] sm:translate-x-[336px] translate-y-[18px] sm:translate-y-[144px] hover:-translate-y-[64px] hover:z-[100] z-[70] before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-white/5 before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-stone-950/60 grayscale-0 before:opacity-0 group-hover/stack:grayscale-[100%] group-hover/stack:before:opacity-100 hover:!grayscale-0 hover:before:!opacity-0 before:transition-opacity before:duration-700 before:left-0 before:top-0",
+  },
+];
+
 
 export default function Home() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -41,33 +124,10 @@ export default function Home() {
     <>
       <div className="bg-white">
 
-        {/* ── HERO BANNER ─────────────────────────────── */}
-        <section className="bg-stone-950 text-white border-b border-white/5">
-          <div className="max-w-7xl mx-auto px-4 py-2 sm:py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <div className="flex items-center gap-3">
-              <span className="hidden md:inline-block px-2 py-1 bg-white/10 rounded text-[9px] font-bold uppercase tracking-widest text-stone-300">
-                Profesyonel Kalite
-              </span>
-              <h1 className="text-lg sm:text-xl md:text-2xl font-black leading-none tracking-tight m-0">
-                Ustalıkla Dövülen <span className="text-stone-300">Bıçaklar</span>
-              </h1>
-            </div>
-            
-            <div className="flex flex-shrink-0 items-center gap-2">
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-stone-950 font-bold text-[11px] sm:text-xs rounded-md hover:bg-stone-100 transition-colors"
-              >
-                Tüm Ürünleri Gör
-                <ArrowRight size={12} />
-              </Link>
-              <Link
-                href="/products?cat=bicak-seti"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-white/20 text-white font-semibold text-[11px] sm:text-xs rounded-md hover:bg-white/10 transition-colors"
-              >
-                Bıçak Setleri
-              </Link>
-            </div>
+        {/* ── KATEGORİ KARTLARI (Display Cards tarzı) ── */}
+        <section className="bg-stone-950 border-b border-white/5 pt-24 pb-8 sm:pt-24 sm:pb-8 overflow-hidden flex items-center justify-center select-none">
+          <div className="relative w-full max-w-[32rem] sm:max-w-[44rem] h-[24rem] flex items-center justify-center -translate-x-[12px] sm:-translate-x-[168px] -translate-y-[24px] sm:-translate-y-[48px]">
+            <DisplayCards cards={CATEGORY_DISPLAY_CARDS} />
           </div>
         </section>
 
@@ -118,36 +178,6 @@ export default function Home() {
               <p className="text-sm">Yakında yeni ürünler eklenecek.</p>
             </div>
           )}
-        </section>
-
-        {/* ── KATEGORİ KARTLARI ────────────────────────── */}
-        <section className="bg-stone-50 border-t border-stone-100 py-10 sm:py-14">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-8">
-              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-400 mb-1">Koleksiyonumuz</p>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-950">Kategoriler</h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
-              {[
-                { label: "Şef Bıçağı", value: "sef-bicagi", emoji: "👨‍🍳" },
-                { label: "Bıçak Seti", value: "bicak-seti", emoji: "🗡️" },
-                { label: "Outdoor",    value: "outdoor",    emoji: "⛺" },
-                { label: "Kasap",      value: "kasap",      emoji: "🥩" },
-                { label: "Satırlar",   value: "satirlar",   emoji: "🪓" },
-                { label: "Bileyici",   value: "bileyici-masatlar", emoji: "⚙️" },
-                { label: "Bıçaklar",   value: "bicaklar",   emoji: "🔪" },
-              ].map((cat) => (
-                <Link
-                  key={cat.value}
-                  href={`/products?cat=${cat.value}`}
-                  className="group flex flex-col items-center justify-center gap-2 p-4 sm:p-6 bg-white rounded-2xl border border-stone-100 hover:border-stone-950 hover:shadow-lg transition-all hover:-translate-y-0.5"
-                >
-                  <span className="text-2xl sm:text-3xl">{cat.emoji}</span>
-                  <span className="text-xs sm:text-sm font-bold text-stone-700 group-hover:text-stone-950 transition-colors text-center">{cat.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
         </section>
 
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/admin/DataTable";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import ProductForm, { type ProductInput } from "@/components/admin/products/ProductForm";
+import { AnimateNumber } from "@/components/ui/animated-blur-number";
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -169,15 +170,33 @@ export default function ProductsPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-medium text-stone-500">Toplam Ürün</p>
-          <p className="mt-2 text-3xl font-bold text-stone-800">{stats.total}</p>
+          <AnimateNumber
+            value={stats.total}
+            locale="tr-TR"
+            className="mt-2 text-3xl font-bold text-stone-800"
+            duration={500}
+            blur={16}
+          />
         </div>
         <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-medium text-stone-500">Aktif Satışta</p>
-          <p className="mt-2 text-3xl font-bold text-green-600">{stats.active}</p>
+          <AnimateNumber
+            value={stats.active}
+            locale="tr-TR"
+            className="mt-2 text-3xl font-bold text-green-600"
+            duration={500}
+            blur={16}
+          />
         </div>
         <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-medium text-stone-500">Kritik Stok (&lt;5)</p>
-          <p className="mt-2 text-3xl font-bold text-rose-600">{stats.lowStock}</p>
+          <AnimateNumber
+            value={stats.lowStock}
+            locale="tr-TR"
+            className="mt-2 text-3xl font-bold text-rose-600"
+            duration={500}
+            blur={16}
+          />
         </div>
       </div>
 

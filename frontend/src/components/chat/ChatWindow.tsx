@@ -24,7 +24,7 @@ export default function ChatWindow({ onClose }: Props) {
 
   const { messages, status, sendMessage } = useChat({
     api: "/api/chat",
-  });
+  } as any);
 
   const isLoading = status === "submitted" || status === "streaming";
 
@@ -39,7 +39,7 @@ export default function ChatWindow({ onClose }: Props) {
   // --- AI Yönlendirme Dinleyicisi ---
   useEffect(() => {
     if (messages.length === 0) return;
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages[messages.length - 1] as any;
 
     if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
       lastMessage.toolInvocations.forEach((toolInvocation: any) => {
