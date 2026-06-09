@@ -122,10 +122,10 @@ export default function Home() {
 
   return (
     <>
-      <div className="bg-white">
+      <div className="bg-stone-50">
 
         {/* ── KATEGORİ KARTLARI (Display Cards tarzı) ── */}
-        <section className="bg-stone-950 border-b border-white/5 pt-20 pb-4 sm:pt-20 sm:pb-4 overflow-hidden flex items-center justify-center select-none">
+        <section className="bg-gradient-to-b from-stone-50 via-stone-100/50 to-stone-50 border-b border-stone-200/40 pt-20 pb-4 sm:pt-20 sm:pb-4 overflow-hidden flex items-center justify-center select-none">
           <div className="relative w-full max-w-[32rem] sm:max-w-[44rem] h-[18rem] flex items-center justify-center -translate-x-[12px] sm:-translate-x-[192px] -translate-y-[12px] sm:-translate-y-[72px]">
             <DisplayCards cards={CATEGORY_DISPLAY_CARDS} />
           </div>
