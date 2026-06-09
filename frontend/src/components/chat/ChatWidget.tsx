@@ -2,7 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 
 const generateId = () => Math.random().toString(36).substring(7);
@@ -32,6 +32,7 @@ function getMessageText(m: any): string {
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigatedIds = useRef<Set<string>>(new Set());
@@ -83,7 +84,7 @@ export default function ChatWidget() {
       navigatedIds.current.add(lastMsg.id);
       console.log('🔀 Auto-navigating to:', navUrl);
       const timer = setTimeout(() => {
-        window.location.href = navUrl;
+        router.push(navUrl);
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -233,7 +234,7 @@ export default function ChatWidget() {
                                 onClick={(e) => {
                                   if (isNav) {
                                     e.preventDefault();
-                                    window.location.href = cleanHref;
+                                    router.push(cleanHref);
                                   }
                                 }}
                                 className="inline-flex items-center gap-1 bg-orange-50 text-orange-600 font-semibold px-2 py-0.5 rounded hover:bg-orange-100 transition cursor-pointer"
