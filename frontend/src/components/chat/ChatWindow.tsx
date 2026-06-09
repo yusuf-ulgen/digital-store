@@ -51,9 +51,11 @@ export default function ChatWindow({ onClose }: Props) {
   // --- AI Yönlendirme Dinleyicisi ---
   useEffect(() => {
     if (messages.length === 0) return;
+    console.log("🔍 CLIENT MESSAGES (Window):", messages);
 
     messages.forEach((message: any) => {
       if (message.role === 'assistant' && message.toolInvocations) {
+        console.log("🔍 ASSISTANT TOOL INVOCATIONS (Window):", message.toolInvocations);
         message.toolInvocations.forEach((toolInvocation: any) => {
           const toolCallId = toolInvocation.toolCallId;
           if (!toolCallId || processedToolCalls.current.has(toolCallId)) return;
@@ -85,7 +87,7 @@ export default function ChatWindow({ onClose }: Props) {
     setView("chat");
   };
 
-  const handleSendMessage = async (e: React.MouseEvent | React.KeyboardEvent) => {
+  const handleSendMessage = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
     if (!trimmed) return;
@@ -93,7 +95,9 @@ export default function ChatWindow({ onClose }: Props) {
     // NOT: Eski anahtar kelime bazlı yönlendirme kaldırıldı.
     // Redirection artık AI (tools) tarafından kontrol ediliyor.
 
-    await sendMessage(
+    setInput('');
+
+    sendMessage(
       { text: trimmed },
       {
         body: {
@@ -101,8 +105,6 @@ export default function ChatWindow({ onClose }: Props) {
         },
       }
     );
-
-    setInput('');
   };
 
   // Mesaj içeriğini render eden fonksiyon

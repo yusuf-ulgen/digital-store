@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import ProductCard from "@/components/ProductCard";
 import type { LocalProduct } from "@/lib/mock-data";
+import { ALL_PRODUCTS } from "@/lib/mock-data";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/components/Footer";
 import DisplayCards from "@/components/ui/display-cards";
@@ -108,11 +109,20 @@ export default function Home() {
           allItems.push({ id: doc.id, ...doc.data() } as LocalProduct);
         });
 
-        const inStockItems = allItems.filter(p => (p.stock ?? 0) > 0);
-        const random12 = inStockItems.sort(() => 0.5 - Math.random()).slice(0, 12);
-        setProducts(random12);
+        if (allItems.length > 0) {
+          const inStockItems = allItems.filter(p => (p.stock ?? 0) > 0);
+          const random12 = inStockItems.sort(() => 0.5 - Math.random()).slice(0, 12);
+          setProducts(random12);
+        } else {
+          // Firestore boş ya da ürün yok, mock dataya dön
+          const inStockItems = (ALL_PRODUCTS as LocalProduct[]).filter(p => (p.stock ?? 0) > 0);
+          setProducts(inStockItems.sort(() => 0.5 - Math.random()).slice(0, 12));
+        }
       } catch (error) {
-        console.error("Veri çekme hatası:", error);
+        console.error("Veri çekme hatası, mock dataya düşülüyor:", error);
+        // Firestore erişilemez, mock datayı göster
+        const inStockItems = (ALL_PRODUCTS as LocalProduct[]).filter(p => (p.stock ?? 0) > 0);
+        setProducts(inStockItems.sort(() => 0.5 - Math.random()).slice(0, 12));
       } finally {
         setLoading(false);
       }

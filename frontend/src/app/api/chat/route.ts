@@ -1,27 +1,25 @@
 import { google } from '@ai-sdk/google';
-import { streamText, UIMessage, convertToModelMessages, tool } from 'ai';
+import { streamText, UIMessage, convertToModelMessages } from 'ai';
 import { ALL_PRODUCTS } from '@/lib/mock-data';
-import { z } from 'zod';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
 export const maxDuration = 30;
 
-// Basit bellek içi rate-limiter tanımları
+// Basit bellek içi rate-limiter
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const globalLimit = { count: 0, resetTime: 0 };
 
-const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 dakika
-const MAX_REQUESTS_PER_WINDOW = 20; // 5 dakikada en fazla 20 istek
-
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;   // 5 dakika
+const MAX_REQUESTS_PER_WINDOW = 20;
 const GLOBAL_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 saat
-const GLOBAL_MAX_REQUESTS = 100; // 1 saatte toplam en fazla 100 istek
+const GLOBAL_MAX_REQUESTS = 100;
 
 export async function POST(req: Request) {
   const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
   const now = Date.now();
 
-  // 1. Global limit kontrolü
+  // Global limit kontrolü
   if (now > globalLimit.resetTime) {
     globalLimit.count = 1;
     globalLimit.resetTime = now + GLOBAL_LIMIT_WINDOW_MS;
@@ -35,7 +33,7 @@ export async function POST(req: Request) {
     globalLimit.count += 1;
   }
 
-  // 2. IP bazlı limit kontrolü
+  // IP bazlı limit kontrolü
   const limitData = rateLimitMap.get(ip);
   if (limitData) {
     if (now > limitData.resetTime) {
@@ -55,7 +53,7 @@ export async function POST(req: Request) {
 
   const { messages }: { messages: UIMessage[] } = await req.json();
 
-  // 1. Ürün verisini firestore'dan çekmeye çalış, hata durumunda mock dataya düş
+  // Ürün verisini Firestore'dan çek, hata durumunda mock dataya düş
   let productsList = ALL_PRODUCTS;
   try {
     const querySnapshot = await getDocs(collection(db, 'products'));
@@ -67,73 +65,58 @@ export async function POST(req: Request) {
       productsList = firestoreProducts;
     }
   } catch (error) {
-    console.error('Failed to fetch products from firestore for chat, using mock fallback:', error);
+    console.error('Firestore bağlantısı başarısız, mock data kullanılıyor:', error);
   }
 
-  // 2. Ürün verisini metne dönüştür (Context oluşturma)
-  const productContext = productsList.map(p => 
-    `- ${p.title} (${p.category}): ${p.price} TL. Stok: ${p.stock > 0 ? 'Var ('+p.stock+')' : 'YOK'}. ID: ${p.id}`
+  // Ürün context'ini metne dönüştür
+  const productContext = productsList.map(p =>
+    `- ${p.title} (${p.category}): ${p.price} TL. Stok: ${p.stock > 0 ? 'Var (' + p.stock + ')' : 'YOK'}. ID: ${p.id}`
   ).join('\n');
 
   const result = (streamText as any)({
     model: google('gemini-flash-latest'),
-    maxSteps: 5,
+    temperature: 0.3,
 
     system: `
-      Sen Ülgen Paslanmaz'ın (Geleneksel Sürmene Bıçakları üreticisi) resmi yapay zeka asistanısın.
-      SADECE Ülgen Paslanmaz ürünleri, siparişler ve bıçak bakımı hakkında yardımcı olursun.
-      
-      MARKA KİŞİLİĞİ:
-      - Profesyonel, güvenilir, yardımsever ve hafifçe geleneksel (Sürmene ustalığına vurgu yapan).
-      - Müşterilere saygılı, çözüm odaklı bir dille hitap et.
-      
-      YÖNLENDİRME VE NAVİGASYON (Tools):
-      - Kullanıcı belirli bir kategorideki bıçakları sorduğunda veya görmek istediğinde (örn: kasap bıçağı, şef bıçağı, satır vb.), önce sorusuna cevap ver ve ürün önerilerini yap, hemen ardından MUTLAKA 'goToCategoryPage' toolunu uygun 'categorySlug' parametresiyle çağır.
-      - Kullanıcı spesifik bir ürünü sorduğunda veya satın almak istediğini belirttiğinde, ürünü tanıt ve ardından MUTLAKA 'goToProductPage' toolunu 'productId' ile çağır.
-      - BU NAVİGASYON VE YÖNLENDİRME TOOL'LARINI KULLANMAK ZORUNLUDUR. Sadece yönlendireceğini söylemek yetmez, ilgili tool'u (goToCategoryPage veya goToProductPage) fiilen çağırmalısın.
-      
-      NAVİGASYON VE KATEGORİ SLUGLARI:
-      - Bıçaklar (Mutfak / Genel Kullanım): cat=bicaklar (kategori slugı: bicaklar)
-      - Kasap Bıçakları: cat=kasap (kategori slugı: kasap)
-      - Bıçak Setleri: cat=bicak-seti (kategori slugı: bicak-seti)
-      - Bileyiciler & Masatlar: cat=bileyici-masatlar (kategori slugı: bileyici-masatlar)
-      - Şef Bıçakları: cat=sef-bicagi (kategori slugı: sef-bicagi)
-      - Outdoor Bıçaklar: cat=outdoor (kategori slugı: outdoor)
-      - Satırlar: cat=satirlar (kategori slugı: satirlar)
+Sen Ülgen Paslanmaz'ın (Geleneksel Sürmene Bıçakları üreticisi) resmi yapay zeka asistanısın.
+SADECE Ülgen Paslanmaz ürünleri, siparişler ve bıçak bakımı hakkında yardımcı olursun.
 
-      ÜRÜN LİSTESİ:
-      ${productContext}
+MARKA KİŞİLİĞİ:
+- Profesyonel, güvenilir, yardımsever ve Sürmene ustalığına vurgu yapan.
+- Müşterilere saygılı, çözüm odaklı bir dille hitap et.
 
-      KURALLAR:
-      1. Yanıtlarını kısa, öz ve Markdown formatında ver. 
-      2. Kullanıcıyı yönlendirmeden önce mutlaka mesajın içinde önerilerini sun.
-      3. Bıçak bakımı sorulursa: "Bulaşık makinesinde yıkamamanızı, elde yıkayıp kurularsanız ömürlük olacağını" belirt.
+# YÖNLENDİRME KURALLARI — MUTLAKA UYULMALI
+Kullanıcı bir ürün kategorisi, kullanım alanı veya ürün hakkında soru sorduğunda ya da görmek istediğinde:
+1. Sorusunu yanıtla ve kısa ürün önerileri sun.
+2. Yanıtının en sonuna, mutlaka ilgili kategori için tıklanabilir bir Markdown linki ekle.
+   Format: [Kategori Adı için tıklayın →](URL)
+
+# KATEGORİ URL EŞLEŞMELERİ
+- Kasap / Et işleme bıçakları → [Kasap Kategorisi →](/products?cat=kasap)
+- Outdoor / Av / Kamp / Doğa bıçakları → [Outdoor Kategorisi →](/products?cat=outdoor)
+- Şef / Profesyonel mutfak bıçakları → [Şef Bıçakları →](/products?cat=sef-bicagi)
+- Genel mutfak / Bıçaklar → [Bıçaklar →](/products?cat=bicaklar)
+- Satır / Ağır hizmet → [Satırlar →](/products?cat=satirlar)
+- Bileyici / Masat / Bileme → [Bileyici & Masatlar →](/products?cat=bileyici-masatlar)
+- Bıçak seti / Set → [Bıçak Setleri →](/products?cat=bicak-seti)
+
+# ÖRNEK DOĞRU YANITLAR
+Kullanıcı "kasap bıçağı göster" derse:
+"İşte kasap bıçaklarımızdan öneriler: ... [Kasap Kategorisi →](/products?cat=kasap)"
+
+Kullanıcı "outdoor bıçakları var mı" derse:
+"Kamp ve av için şu seçeneklerimiz var: ... [Outdoor Kategorisi →](/products?cat=outdoor)"
+
+# KURAL
+- Link OLMADAN yönlendirme cümlesi YAZMA. Her yönlendirme mutlaka yukarıdaki formatta gerçek bir Markdown linki ile bitmeli.
+- Yanıtlarını kısa ve öz tut.
+- Bıçak bakımı sorulursa: bulaşık makinesine koyma, elle yıka ve kurula.
+
+ÜRÜN LİSTESİ:
+${productContext}
     `,
 
     messages: convertToModelMessages(messages),
-    
-    tools: {
-      goToCategoryPage: {
-        description: 'Kullanıcıyı belirli bir ürün kategorisi sayfasına yönlendirir.',
-        parameters: z.object({
-          categorySlug: z.string().describe('Yönlendirilecek kategori slugı (örn: kasap, sef-bicagi, outdoor, satirlar, bileyici-masatlar, bicaklar, bicak-seti)'),
-        }),
-        execute: async ({ categorySlug }: { categorySlug: string }) => {
-          console.log("🚀 CHAT TOOL EXECUTION: goToCategoryPage called with slug ->", categorySlug);
-          return { success: true, categorySlug, action: 'redirect' };
-        }
-      },
-      goToProductPage: {
-        description: 'Kullanıcıyı belirli bir ürün detay sayfasına yönlendirir.',
-        parameters: z.object({
-          productId: z.string().describe('Yönlendirilecek ürünün ID numarası.'),
-        }),
-        execute: async ({ productId }: { productId: string }) => {
-          console.log("🚀 CHAT TOOL EXECUTION: goToProductPage called with ID ->", productId);
-          return { success: true, productId, action: 'redirect' };
-        }
-      },
-    },
   });
 
   return result.toUIMessageStreamResponse();
