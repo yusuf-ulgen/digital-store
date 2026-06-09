@@ -85,31 +85,32 @@ export default function ChatWidget() {
   // --- AI Yönlendirme Dinleyicisi ---
   useEffect(() => {
     if (messages.length === 0) return;
-    const lastMessage = messages[messages.length - 1] as any;
 
-    if (lastMessage.role === 'assistant' && lastMessage.toolInvocations) {
-      lastMessage.toolInvocations.forEach((toolInvocation: any) => {
-        const toolCallId = toolInvocation.toolCallId;
-        if (!toolCallId || processedToolCalls.current.has(toolCallId)) return;
+    messages.forEach((message: any) => {
+      if (message.role === 'assistant' && message.toolInvocations) {
+        message.toolInvocations.forEach((toolInvocation: any) => {
+          const toolCallId = toolInvocation.toolCallId;
+          if (!toolCallId || processedToolCalls.current.has(toolCallId)) return;
 
-        // Redirection tools
-        if (toolInvocation.toolName === 'goToCategoryPage') {
-          const slug = toolInvocation.args.categorySlug;
-          if (slug) {
-            processedToolCalls.current.add(toolCallId);
-            router.push(`/products?cat=${slug}`);
+          // Redirection tools
+          if (toolInvocation.toolName === 'goToCategoryPage') {
+            const slug = toolInvocation.args.categorySlug;
+            if (slug) {
+              processedToolCalls.current.add(toolCallId);
+              router.push(`/products?cat=${slug}`);
+            }
           }
-        }
 
-        if (toolInvocation.toolName === 'goToProductPage') {
-          const pid = toolInvocation.args.productId;
-          if (pid) {
-            processedToolCalls.current.add(toolCallId);
-            router.push(`/products/${pid}`);
+          if (toolInvocation.toolName === 'goToProductPage') {
+            const pid = toolInvocation.args.productId;
+            if (pid) {
+              processedToolCalls.current.add(toolCallId);
+              router.push(`/products/${pid}`);
+            }
           }
-        }
-      });
-    }
+        });
+      }
+    });
   }, [messages, router]);
 
   // --- Resize Mantığı ---
