@@ -28,11 +28,11 @@ const UsersIcon = () => (
   </svg>
 );
 
-const LogsIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
+// const LogsIcon = () => (
+//   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+//   </svg>
+// );
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -44,11 +44,11 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { name: "Dashboard", href: "/admin", icon: <HomeIcon /> },
-    { name: "Orders", href: "/admin/orders", icon: <OrdersIcon /> },
-    { name: "Products", href: "/admin/products", icon: <ProductsIcon /> },
-    { name: "Users", href: "/admin/users", icon: <UsersIcon /> },
-    { name: "Logs", href: "/admin/logs", icon: <LogsIcon /> },
+    { name: "Ana Sayfa", href: "/admin", icon: <HomeIcon /> },
+    { name: "Siparişler", href: "/admin/orders", icon: <OrdersIcon /> },
+    { name: "Ürünler", href: "/admin/products", icon: <ProductsIcon /> },
+    { name: "Kullanıcılar", href: "/admin/users", icon: <UsersIcon /> },
+    // { name: "Logs", href: "/admin/logs", icon: <LogsIcon /> },
   ];
 
   return (
@@ -66,8 +66,6 @@ export default function Sidebar() {
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const active = isActive(item.href);
-          
           // Dashboard ('/admin') sadece tam eşleşmede aktif olsun, diğerleri alt yollarda da aktif olsun
           const isSelected = item.href === "/admin" 
             ? pathname === "/admin" 

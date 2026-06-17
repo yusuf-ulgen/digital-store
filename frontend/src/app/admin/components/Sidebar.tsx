@@ -5,9 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { ShoppingCartIcon, ShoppingBagIcon, UsersIcon, ArrowLeftOnRectangleIcon, } from "@heroicons/react/24/outline"; 
 import { logout } from "@/lib/auth";
 
-const navigation = [ { name: "Orders", href: "/admin/orders", icon: ShoppingCartIcon }, 
-    { name: "Products", href: "/admin/products", icon: ShoppingBagIcon }, 
-    { name: "Users", href: "/admin/users", icon: UsersIcon }, ];
+const navigation = [ { name: "Siparişler", href: "/admin/orders", icon: ShoppingCartIcon }, 
+    { name: "Ürünler", href: "/admin/products", icon: ShoppingBagIcon }, 
+    { name: "Kullanıcılar", href: "/admin/users", icon: UsersIcon }, ];
 
 function classNames(...classes: string[]) { return classes.filter(Boolean).join(" "); }
 
